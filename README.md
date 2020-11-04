@@ -1,5 +1,4 @@
-![OPhub logo](/logo.png)
-
+![OPhub logo](/logo.svg)
 
 # OpenWrt Firmware
 
@@ -13,9 +12,12 @@ The latest version of the OpenWrt firmware is automatically compiled every Monda
 - [S905X3](https://github.com/ophub/op/tree/master/router/s905x3)
 - [x64](https://github.com/ophub/op/tree/master/router/x64)
 
-## Usage
+## Compilation method
 
-* Related script usage instructions:
+- Select ***`Build OpenWrt for ${router}`*** on the [Action](https://github.com/ophub/op/actions) page.
+- Click the ***`Run workflow`*** button.
+
+## Related script usage instructions
 
 There are currently two DIY scripts in the root directory of the warehouse: `diy-part1.sh`, `diy-part2.sh` and `.config`, which are executed before and after the update and installation of ` ./scripts/feeds update && ./scripts/feeds install `. You can write the instructions for modifying the source code into the script, such as modifying `the default IP , Host name, theme, add/remove software package...`, etc. If the additional software package has the same name as the existing software package in the OpenWrt source code, the software package with the same name in the Open­Wrt source code needs to be deleted, otherwise the packages in Open­Wrt will be compiled first. It will automatically traverse all files in the `package` directory when compiling.
 
@@ -23,9 +25,9 @@ There are currently two DIY scripts in the root directory of the warehouse: `diy
 Just put the `feeds.conf.default` file into the root directory of the warehouse, it will overwrite the relevant files in the Open­Wrt source directory. Create a new `files` directory under the root directory of the warehouse, and put the customized related files in the same directory structure as OpenWrt, and the OpenWrt configuration will be overwritten during compilation.
 
 
-Set `SSH_ACTIONS: true` to use tmate to connect to the `GitHub Actions` virtual server environment. You can directly perform the `make menuconfig` operation to generate the compilation configuration, or any customized operation. After triggering the workflow, wait for the `SSH connection to Actions` step to be executed on the `Actions` page, and then the following three lines of messages will be displayed: 1.` To connect to this session copy-n-paste the following into a terminal or browser: `, 2.***` ssh Y26QenMRd@nyc1.tmate.io `***, 3.***` https://tmate.io/t/Y26QenMRd `***. Then copy the `SSH connection command` and paste it into `the terminal` for execution, or copy `the link` to open it in `the browser` and use `the web terminal`. enter the command: ***` cd openwrt && make menuconfig `*** for personalized configuration (The web terminal may encounter a black screen, just press ***`Ctrl+C`***). After completion, press the shortcut key ***` Ctrl+D `*** or execute the ***` exit `*** command to exit, and the subsequent compilation work will proceed automatically.
+On the [Action](https://github.com/ophub/op/actions) page. Select ***`Build OpenWrt for ${router}`*** in the list on the left, and Click the ***`Run workflow`*** button on the right. Set ***`SSH connection to Actions: true`*** to use tmate to connect to the `GitHub Actions` virtual server environment. You can directly perform the `make menuconfig` operation to generate the compilation configuration, or any customized operation. After triggering the workflow, wait for the `SSH connection to Actions` step to be executed on the `Actions` page, and then the following three lines of messages will be displayed: 1.` To connect to this session copy-n-paste the following into a terminal or browser: `, 2.***` ssh Y26QenMRd@nyc1.tmate.io `***, 3.***` https://tmate.io/t/Y26QenMRd `***. Then copy the `SSH connection command` and paste it into `the terminal` for execution, or copy `the link` to open it in `the browser` and use `the web terminal`. enter the command: ***` cd openwrt && make menuconfig `*** for personalized configuration (The web terminal may encounter a black screen, just press ***`Ctrl+C`***). After completion, press the shortcut key ***` Ctrl+D `*** or execute the ***` exit `*** command to exit, and the subsequent compilation work will proceed automatically.
 
-* router/${firmware} Function description of related files in each firmware package:
+## router/${firmware} Function description of related files in each firmware package
 
 | Folder/file name | Features |
 | ---- | ---- |
@@ -36,7 +38,7 @@ Set `SSH_ACTIONS: true` to use tmate to connect to the `GitHub Actions` virtual 
 | diy-part2.sh | After updating and installing feeds, you can write the instructions for modifying the source code into the script, such as modifying the default IP, host name, theme, adding/removing software packages, etc. |
 
 
-## .github/workflow/${workflows_file}.yml files related environment variable description:
+## .github/workflow/${workflows_file}.yml files related environment variable description
 
 | Environment variable | Features |
 | ---- | ---- |
@@ -46,7 +48,6 @@ Set `SSH_ACTIONS: true` to use tmate to connect to the `GitHub Actions` virtual 
 | CONFIG_FILE | Custom .config file name |
 | DIY_P1_SH | Custom diy-part1.sh file name |
 | DIY_P2_SH | Custom diy-part2.sh file name |
-| SSH_ACTIONS | SSH connection Actions function. Default false |
 | UPLOAD_BIN_DIR | Upload the bin directory (all ipk files and firmware). Default false |
 | UPLOAD_FIRMWARE | Upload firmware catalog. Default true |
 | UPLOAD_RELEASE | Upload firmware to release. Default true |
@@ -78,7 +79,9 @@ Set `SSH_ACTIONS: true` to use tmate to connect to the `GitHub Actions` virtual 
  │       ├── build-openwrt-linksys_wrt32x.yml          # Build Linksys WRT32X firmware
  │       ├── build-openwrt-x64.yml                     # Build X64 Virtual Machine firmware
  │       ├── build-openwrt-phicomm_n1.yml              # Build PHICOMM N1 firmware
- │       └── delete-older-releases.yml                 # Delete older releases
+ │       ├── build-openwrt-nanopi_r2s.yml              # Build NanoPi R2S firmware
+ │       ├── build-openwrt-s905x3.yml                  # Build S905x3 firmware
+ │       └── delete-older-releases-artifacts.yml       # Delete older releases & artifacts
  │
  ├── router                                            # Related router Openwrt firmware codes 
  │   ├── linksys_wrt1900acs                            # Linksys WRT1900ACS related code files
@@ -112,10 +115,11 @@ Set `SSH_ACTIONS: true` to use tmate to connect to the `GitHub Actions` virtual 
  │   │   └── README.md
  │   │
  │   ├── s905x3                                        # s905x3 related (X96 Max Plus, HK1 Box) 
- │   │   ├── flippy
- │   │   │   └── phicomm-n1.img                        # Use Phicomm N1 firmware to build s905x3
  │   │   ├── make                                      # Build script for 905x3           
- │   │   └── README.md
+ │   │   ├── README.md
+ │   │   └── flippy
+ │   │       ├── phicomm_n1_firmware.img               # Phicomm N1 firmware (*.img)
+ │   │       └── or phicomm_n1_firmware.zip            # Phicomm N1 firmware (*.zip)  
  │   │
  │   └── phicomm_n1                                    # PHICOMM N1 related code files
  │       ├── .config            
@@ -123,7 +127,6 @@ Set `SSH_ACTIONS: true` to use tmate to connect to the `GitHub Actions` virtual 
  │       ├── diy-part2.sh            
  │       ├── make                                      # Build script for PHICOMM N1
  │       ├── README.md
- │       │
  │       ├── armbian                                   # armbian related files
  │       │   ├── boot-common.tar.gz                    # Public startup file
  │       │   ├── firmware.tar.gz                       # armbian firmware
@@ -132,7 +135,6 @@ Set `SSH_ACTIONS: true` to use tmate to connect to the `GitHub Actions` virtual 
  │       │       │   └── ${kernel}                     # Various versions of the kernel folder
  │       │       │       ├── kernel.tar.gz
  │       │       │       └── modules.tar.gz
- │       │       │
  │       │       └── root                              # Add your custom files(ROOTFS Partition)
  │       │    
  │       ├── build_kernel                              # Build kernel for Phicomm-N1
@@ -143,7 +145,6 @@ Set `SSH_ACTIONS: true` to use tmate to connect to the `GitHub Actions` virtual 
  │       │       ├── boot-${flippy_version}.tar.gz
  │       │       ├── dtb-amlogic-${flippy_version}.tar.gz
  │       │       ├── modules-${flippy_version}.tar.gz
- │       │       │ 
  │       │       └── or ${flippy_file} E.g: N1_Openwrt_*.img
  │       │     
  │       └── install-program                           # Install to emmc for PHICOMM N1
@@ -158,9 +159,6 @@ Set `SSH_ACTIONS: true` to use tmate to connect to the `GitHub Actions` virtual 
  └── README.md                                         # Instructions for OP
    
 ```
-## Tips
-
-The code Fork comes from the code bases of authors such as coolsnowwolf, P3TERX, tuanqing & flippy, etc.  I only did a simple router adaptability debugging. For more advanced usage, please go to the original author's github to learn.
 
 ## Acknowledgments
 

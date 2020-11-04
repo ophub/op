@@ -5,6 +5,8 @@ You can download the OpwnWrt for Phicomm N1 firmware from [Actions](https://gith
 
 The firmware supports USB hard disk booting. You can also Install the OpenWrt firmware in the USB hard disk into the EMMC partition of Phicomm N1, and start using it from N1.
 
+Insert the ***`USB hard disk`*** with the written openwrt firmware into the Phicomm N1, and then plug it into the ***`power supply`***. The Phicomm N1 will automatically start the openwrt system from the USB hard disk, wait for about 2 minutes, select ***`OpenWrt`*** in the wireless wifi list of your computer, no password, the computer will automatically obtain the IP, Enter OpwnWrt's IP Address: ***`192.168.1.1`***, Account: ***`root`***, Password: ***`password`***, and then log in OpenWrt system.
+
 Install OpenWrt: `Login in to openwrt` → `system menu` → `TTYD terminal` → input command: 
 ```shell script
 n1-install.sh
@@ -42,6 +44,11 @@ The software package supports Github Action cloud compilation, and the compiled 
 - `sudo ./make -h`: Display help information and view detailed description of each parameter.
 - `sudo ./make`: If you are familiar with the relevant setting requirements of the phicomm_n1 firmware, you can follow the prompts, such as selecting the firmware you want to make, the kernel version, setting the ROOTFS partition size, etc. If you don’t know these settings, just press Enter.
 
+## Compilation method
+
+- Select ***`Build OpenWrt for Phicomm N1`*** on the [Action](https://github.com/ophub/op/actions) page.
+- Click the ***`Run workflow`*** button.
+
 ## Configuration file function description
 
 | Folder/file name | Features |
@@ -67,7 +74,6 @@ The software package supports Github Action cloud compilation, and the compiled 
 | CONFIG_FILE | Custom .config file name |
 | DIY_P1_SH | Custom diy-part1.sh file name |
 | DIY_P2_SH | Custom diy-part2.sh file name |
-| SSH_ACTIONS | SSH connection Actions function. Default false |
 | UPLOAD_BIN_DIR | Upload the bin directory (all ipk files and firmware). Default false |
 | UPLOAD_FIRMWARE | Upload firmware catalog. Default true |
 | UPLOAD_RELEASE | Upload firmware to release. Default true |

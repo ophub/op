@@ -4,9 +4,6 @@ die() {
     echo -e "\033[1;31mError:\033[0m $1" && exit 1
 }
 
-#For change X96-Max+(S905x3)1000M dtb path
-firmware_dtb=${1}
-
 emmc=$(lsblk | grep -oE 'mmcblk[0-9]' | sort | uniq)
 sd=$(lsblk | grep -oE 'sd[a-z]' | sort | uniq)
 
@@ -30,7 +27,7 @@ if grep -q $dev_emmc /proc/mounts; then
     umount -f ${dev_emmc}p* 2>/dev/null
 fi
 
-if [ $(blkid | grep -E 'BOOT_EMMC|ROOT_EMMC|DATA' | wc -l) != 3 ]; then
+if [ $(blkid ${dev_emmc}p[1-3] | grep -E 'BOOT_EMMC|ROOT_EMMC|DATA' | wc -l) != 3 ]; then
     # parted -v >/dev/null 2>&1 || die "package parted not found!!"
 
     echo "backup u-boot..."
@@ -88,21 +85,6 @@ else
    sed -i 's/ROOTFS/ROOT_EMMC/' $ins_boot/uEnv.txt
 fi
 
-[ "${firmware_dtb}" = "x96" ] && {    
-    echo "Start edit uEnv.txt for ${firmware_dtb}"
-        old_x96_100dtb="FDT=\/dtb\/amlogic\/meson-sm1-x96-max-plus-100m.dtb"
-        new_x96_100dtb="#FDT=\/dtb\/amlogic\/meson-sm1-x96-max-plus-100m.dtb"
-        sed -i "s/^${old_x96_100dtb}/${new_x96_100dtb}/g" $ins_boot/uEnv.txt
-        echo "dtb_close: meson-sm1-x96-max-plus-100m.dtb"
-        
-        old_x96_1000dtb="#FDT=\/dtb\/amlogic\/meson-sm1-x96-max-plus.dtb"
-        new_x96_1000dtb="FDT=\/dtb\/amlogic\meson-sm1-x96-max-plus.dtb"
-        sed -i "s/^${old_x96_1000dtb}/${new_x96_1000dtb}/g" $ins_boot/uEnv.txt
-        echo "dtb_open: meson-sm1-x96-max-plus.dtb"   
-    sync
-    echo "End edit uEnv.txt for ${firmware_dtb}"
-}
-
 rm -f $ins_boot/s9*
 rm -f $ins_boot/aml*
 rm -f $ins_boot/boot.ini
@@ -118,20 +100,11 @@ rm -rf $ins_root/*
 echo "copy rootfs..."
 
 cd /
-echo " --> copy bin..."
-tar -cf - bin | (cd $ins_root; tar -xpf -)
-echo " --> copy etc..."
-tar -cf - etc | (cd $ins_root; tar -xpf -)
-echo " --> copy lib..."
-tar -cf - lib | (cd $ins_root; tar -xpf -)
-echo " --> copy root..."
-tar -cf - root | (cd $ins_root; tar -xpf -)
-echo " --> copy sbin..."
-tar -cf - sbin | (cd $ins_root; tar -xpf -)
-echo " --> copy usr..."
-tar -cf - usr | (cd $ins_root; tar -xpf -)
-echo " --> copy www..."
-tar -cf - www | (cd $ins_root; tar -xpf -)
+copy_sys="bin etc lib root sbin usr www"
+for x in $copy_sys; do
+    echo " --> copy $x..."
+    tar -cf - $x | (cd $ins_root; tar -xpf -)
+done
 
 [ -f init ] && cp -f init $ins_root
 
@@ -183,7 +156,7 @@ macaddr=$(uuidgen | md5sum | sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/fc:\1:\2:
     )
 }
 
-rm -f usr/bin/n1-install
+rm -f /usr/bin/n1-install.sh
 
 echo "sync..."
 cd /

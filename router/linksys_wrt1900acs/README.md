@@ -30,6 +30,12 @@ cd /tmp/upload
 sysupgrade -F -n -v FW_WRT1900ACSV2_2.0.3.201002_prod.img
 reboot
 ````
+
+## Compilation method
+
+- Select ***`Build OpenWrt for Linksys WRT1900ACS`*** on the [Action](https://github.com/ophub/op/actions) page.
+- Click the ***`Run workflow`*** button.
+
 ## Configuration file function description
 
 | Folder/file name | Features |
@@ -51,7 +57,6 @@ reboot
 | CONFIG_FILE | Custom .config file name |
 | DIY_P1_SH | Custom diy-part1.sh file name |
 | DIY_P2_SH | Custom diy-part2.sh file name |
-| SSH_ACTIONS | SSH connection Actions function. Default false |
 | UPLOAD_BIN_DIR | Upload the bin directory (all ipk files and firmware). Default false |
 | UPLOAD_FIRMWARE | Upload firmware catalog. Default true |
 | UPLOAD_RELEASE | Upload firmware to release. Default true |

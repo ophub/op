@@ -1,11 +1,11 @@
 #!/bin/bash
-#================================================================
+#========================================================================================================================
 # https://github.com/ophub/op
 # Description: Automatically Build OpenWrt for PHICOMM N1
 # Function: Use armbian kernel to build openwrt for PHICOMM N1
 # Copyright (C) 2020 https://github.com/tuanqing/mknop
 # Copyright (C) 2020 https://github.com/ophub/op
-#================================================================
+#========================================================================================================================
 
 tmp_path="router/phicomm_n1/tmp"
 out_path="router/phicomm_n1/out"
@@ -13,6 +13,8 @@ armbian_original_path="router/phicomm_n1/armbian"
 openwrt_original_path="router/phicomm_n1/openwrt"
 device="phicomm-n1" # don't modify it
 image_name='$device-v$kernel-openwrt-firmware'
+SKIP_MB=16
+BOOT_MB=256
 
 tag() {
     echo -e " [ \033[1;36m$1\033[0m ]"
@@ -141,13 +143,13 @@ make_image() {
     image="$out_path/$kernel/$(date "+%y.%m.%d-%H%M%S")-$(eval "echo $image_name").img"
 
     [ -d "$out_path/$kernel" ] || mkdir -p "$out_path/$kernel"
-    fallocate -l $((16 + 128 + rootsize))M $image
+    fallocate -l $((SKIP_MB + BOOT_MB + rootsize))M $image
 }
 
 format_image() {
-    parted -s $image mklabel msdos
-    parted -s $image mkpart primary ext4 17M 151M
-    parted -s $image mkpart primary ext4 151M 100%
+    parted -s $image mklabel msdos 2>/dev/null
+    parted -s $image mkpart primary ext4 $((SKIP_MB))M $((SKIP_MB + BOOT_MB -1))M 2>/dev/null
+    parted -s $image mkpart primary ext4 $((SKIP_MB + BOOT_MB))M 100% 2>/dev/null
 
     loop_setup $image
     mkfs.vfat -n "BOOT" ${loop}p1 >/dev/null 2>&1
@@ -261,9 +263,9 @@ set_rootsize() {
     rootsize=
 
     while true; do
-        read -p " input the rootfs partition size, defaults to 512m, do not less than 256m
+        read -p " input the rootfs partition size, defaults to 1024m, do not less than 256m
  if you don't know what this means, press Enter to keep default: " rootsize
-        [ $rootsize ] || rootsize=512
+        [ $rootsize ] || rootsize=1024
         if [[ "$rootsize" -ge 256 ]]; then
             tag $rootsize && echo
             break
@@ -284,7 +286,7 @@ Options:
   -c, --clean       clean up the output and temporary directories
 
   -d, --default     use the default configuration, which means that use the first firmware in the "openwrt" directory, \
-the kernel version is "all", and the rootfs partition size is 512m
+the kernel version is "all", and the rootfs partition size is 1024m
 
   -k=VERSION        set the kernel version, which must be in the "kernel" directory
      , -k all       build all the kernel version
@@ -318,7 +320,7 @@ while [ "$1" ]; do
         echo " clean up ok!" && exit
         ;;
     -d | --default)
-        : ${rootsize:=512}
+        : ${rootsize:=1024}
         : ${firmware:="${firmwares[0]}"}
         : ${kernel:="all"}
         ;;

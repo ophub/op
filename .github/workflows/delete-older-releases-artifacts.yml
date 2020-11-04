@@ -5,24 +5,25 @@
 # Cron: min (0 - 59) / hour (0 - 23) / day of month (1 - 31) / month (1 - 12) / day of week (0 - 6)(Sunday - Saturday)
 #=======================================================================================================================
 
-name: Delete older releases artifacts
+name: Delete older releases and artifacts
 
 on:
   repository_dispatch:
-  release:
-    types: published
-  push:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/delete-older-releases-artifacts.yml'
+  workflow_dispatch:
+  #release:
+    #types: published
+  #push:
+    #branches:
+      #- main
+    #paths:
+      #- '.github/workflows/delete-older-releases-artifacts.yml'
   schedule:
     - cron: '30 23 * * 0'
 
 env:
   DELETE_RELEASE: true
   DELETE_ARTIFACTS: true
-  RECENT_LASTEST: 15
+  RECENT_LASTEST: 30
 
 jobs:
   build:

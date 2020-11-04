@@ -12,43 +12,43 @@ You can download the OpwnWrt for S905x3 firmware from [Actions](https://github.c
 - `openwrt_hk1_*.img`: For X96-Max+(S905x3) / H96-Max-X3-Round(S905x3)
 - `openwrt_x96_*.img`: For HK1-Box(S905x3)
 
-Decompress the firmware and write it to a MicroSD card/TF card. Before starting the USB flash drive for the first time, use the adb tool to connect:
-```shell script
-adb connect 192.168.1.10       #change to box-ip
-adb shell
-su
-reboot update
-````
-Then quickly insert the prepared USB card/TF card to start the openwrt for s905x3 firmware.
+## Install into emmc
 
 The firmware supports USB hard disk booting. You can also Install the OpenWrt firmware in the USB hard disk into the EMMC partition of S905x3, and start using it from EMMC.
 
-If you use the scheme of writing emmc, you first need to Update the bootloader to support 1000M/s (X96-Max+ / H96-Max-X3-Round / HK1-Box universal HK1-box bootloader). you can restore the bootloader, restart it, and run the `Install OpenWrt` command again.
+- Open the developer mode: Settings → About this machine → Version number (for example: X96max plus...), click on the version number for 7 times in quick succession, and you will see that the developer mode is turned on.
+
+- Turn on USB debugging: After restarting, enter Settings → System → Advanced options → Developer options again (after entering, confirm that the status is on, and the USB debugging status in the list is also on)
+
+- Boot from U disk: Unplug the power → insert the Usb disk → insert the thimble into the AV port (top reset button) → insert the power → release the thimble of the av port → the system will boot from the Usb disk.
+
+- Log in to the system: Connect the computer and the s905x3 box with a network interface → turn off the wireless wifi on the computer → enable the wired connection → manually set the computer ip to the same network segment ip as openwrt, ipaddr such as ***`192.168.1.2`***. The netmask is ***`255.255.255.0`***, and others are not filled in. You can log in to the openwrt system from the browser, Enter OpwnWrt's IP Address: ***`192.168.1.1`***, Account: ***`root`***, Password: ***`password`***, and then log in OpenWrt system.
+
+- Restore the bootloader: You first need to Update the bootloader to support 1000M/s (X96-Max+ / H96-Max-X3-Round / HK1-Box ***`universal hk1box-bootloader.img`***). `Login in to openwrt` → `system menu` → `TTYD terminal` → input command: 
+
 ```shell script
-dd if=/root/hk1box-bootloader.img of=/dev/mmcblk1 bs=1M
+dd if=/root/hk1box-bootloader.img of=/dev/mmcblk2 bs=1M count=4 conv=fsync
 sync
 reboot
 ```
 
-Install OpenWrt: `Login in to openwrt` → `system menu` → `TTYD terminal` → input command: 
+- Install OpenWrt: `Login in to openwrt` → `system menu` → `TTYD terminal` → input command: 
 ```shell script
-#For X96-Max+(S905x3) / H96-Max-X3-Round(S905x3)
-#Start from usb is to use meson-sm1-x96-max-plus-100m.dtb, Will change to meson-sm1-x96-max-plus.dtb after writing emmc.
-n1-install.sh x96
-reboot
-```
-
-```shell script
-#For HK1-Box(S905x3)
-n1-install.sh
+cd /root
+chmod 755 s905x3-install.sh
+./s905x3-install.sh
 reboot
 ```
 
 Wait for the installation to complete. remove the USB hard disk, unplug/plug in the power again, reboot into EMMC.
 
-Upgrading OpenWrt: `Login in to openwrt` → `system menu` → `file transfer` → upload to `/tmp/upgrade/xxx.img`, enter the `system menu` → `TTYD terminal` → input command: 
+Upgrading OpenWrt: `Login in to openwrt` → `system menu` → `file transfer` → upload ***`s905x3-openwrt.zip`*** to ***`/tmp/upload/`***, enter the `system menu` → `TTYD terminal` → input command: 
 ```shell script
-n1-update.sh
+mv -f /tmp/upload/s905x3-openwrt.zip /mnt/mmcblk2p4
+cd /mnt/mmcblk2p4
+unzip s905x3-openwrt.zip    #Unzip the [ s905x3-openwrt.zip ] file to get [ s905x3-openwrt.img ]
+chmod 755 s905x3-update.sh
+./s905x3-update.sh s905x3-openwrt.img
 reboot
 ```
 
@@ -98,6 +98,11 @@ Method: Add # in front of the dtb file path of Phicomm N1, and remove the # in f
 - `sudo ./make x96`: Build the OpenWrt firmware of X96-Max+ & H96-Max-X3-Round according to the default configuration.
 - `sudo ./make hk1`: Build the OpenWrt firmware of HK1-Box according to the default configuration.
 
+## Compilation method
+
+- Select ***`Build OpenWrt for S905x3`*** on the [Action](https://github.com/ophub/op/actions) page.
+- Click the ***`Run workflow`*** button.
+
 ## Configuration file function description
 
 | Folder/file name | Features |
@@ -116,7 +121,6 @@ Method: Add # in front of the dtb file path of Phicomm N1, and remove the # in f
 | CONFIG_FILE | Custom .config file name |
 | DIY_P1_SH | Custom diy-part1.sh file name |
 | DIY_P2_SH | Custom diy-part2.sh file name |
-| SSH_ACTIONS | SSH connection Actions function. Default false |
 | UPLOAD_BIN_DIR | Upload the bin directory (all ipk files and firmware). Default false |
 | UPLOAD_FIRMWARE | Upload firmware catalog. Default true |
 | UPLOAD_RELEASE | Upload firmware to release. Default true |

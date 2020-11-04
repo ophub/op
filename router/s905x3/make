@@ -1,11 +1,11 @@
 #!/bin/bash
 
-#============================================================================================================================
+#========================================================================================================================
 # https://github.com/ophub/op
 # Description: Use Phicomm N1 firmware to build s905x3 related firmware (x96 hk1)
 # Function: Use Phicomm N1 firmware to build s905x3 related firmware
 # Copyright (C) 2020 https://github.com/ophub/op
-#============================================================================================================================
+#========================================================================================================================
 #
 # example: ~/op/router/s905x3/
 # ├── flippy
@@ -29,7 +29,7 @@
 #
 # Tips: If run 'sudo ./make all' is 'Command not found'. run: 'sudo chmod +x make'
 #
-#============================================================================================================================
+#========================================================================================================================
 
 # Default setting ( Don't modify )
 flippy_folder="flippy"
@@ -40,6 +40,9 @@ build_save_folder="out"
 firmware_list=("x96" "hk1")
 convert_firmware=${1}
 
+get_tree_status=$(dpkg --get-selections | grep unzip)
+[ $? = 0 ] || sudo apt install unzip
+
 # echo color codes
 echo_color() {
 
@@ -47,7 +50,7 @@ echo_color() {
         case "${this_color}" in
         red)
             echo -e " \033[1;31m[ ${2} ]\033[0m ${3}"
-            echo -e "-------------------${1}---------------------"
+            echo -e "--------------------------------------------"
             echo -e "Current path -PWD-: [ ${PWD} ]"
             echo -e "Situation -lsblk-: [ $(lsblk) ]"
             echo -e "Directory file list -ls-: [ $(ls .) ]"
@@ -77,7 +80,7 @@ echo_color() {
 check_zip_file() {
 
     if  [  ! -f ${flippy_folder}/*.zip ]; then
-        echo_color "red" "(1/5) Error: *${flippy_folder}/*.zip Files does not exist."  "\n \
+        echo_color "red" "(1/6) Error: *${flippy_folder}/*.zip Files does not exist."  "\n \
         Support the use of *.img and *.zip files"
     else
         cd ${flippy_folder} && unzip -o *.zip && sync
@@ -85,13 +88,13 @@ check_zip_file() {
         for kernel_folder in $( ls -d */ | head -c-2 ); do
             kernel_version=${kernel_folder%/*}
             cd ${kernel_version} && gzip -df *.img.gz && mv -f *.img ../${kernel_version}.img && sync && cd ../
-            echo_color "yellow" "(1/5) Get the kernel: ${kernel_version}" "..."
+            echo_color "yellow" "(1/6) Get the kernel: ${kernel_version}" "..."
         done
 
         rm -rf $( find ${PWD}/* -type d ) 2>/dev/null
         rm -rf $( find ${PWD}/* -type f ! -name "*.img" ) 2>/dev/null
 
-        echo_color "green" "(1/5) End check_zip_files" "Use [ ${openwrt_zip_name} ] Convert to [ ${convert_firmware} ]..."
+        echo_color "green" "(1/6) End check_zip_files" "Use [ ${openwrt_zip_name} ] Convert to [ ${convert_firmware} ]..."
     fi
     cd ../
 
@@ -102,11 +105,11 @@ check_build_files() {
 
     flippy_file=${1}
     if  [  ! -f ${flippy_folder}/${flippy_file} ]; then
-        echo_color "red" "(2/5) Error: Files does not exist"  "\n \
+        echo_color "red" "(2/6) Error: Files does not exist"  "\n \
         Please check if the following one files exist: \n \
         ${flippy_folder}/${flippy_file} "
     else
-        echo_color "green" "(2/5) End check_build_files" "Use [ ${flippy_file} ] Convert to [ ${convert_firmware} ]..."
+        echo_color "green" "(2/6) End check_build_files" "Use [ ${flippy_file} ] Convert to [ ${convert_firmware} ]..."
     fi
 
 }
@@ -121,13 +124,13 @@ losetup_mount_img() {
      chmod -R 777 ${flippy_folder} ${build_tmp_folder}
 
      lodev=$(losetup -P -f --show ${flippy_folder}/make_${flippy_file})
-     [ $lodev ] || echo_color "red" "(3/5) losetup make_${flippy_file} failed!" "..."
+     [ $lodev ] || echo_color "red" "(3/6) losetup make_${flippy_file} failed!" "..."
      mount ${lodev}p1 ${boot_tmp}
-     [ $lodev ] || echo_color "red" "(3/5) mount ${lodev}p1 failed!" "..."
+     [ $lodev ] || echo_color "red" "(3/6) mount ${lodev}p1 failed!" "..."
      mount ${lodev}p2 ${root_tmp}
-     [ $lodev ] || echo_color "red" "(3/5) mount ${lodev}p2 failed!" "..."
+     [ $lodev ] || echo_color "red" "(3/6) mount ${lodev}p2 failed!" "..."
 
-     echo_color "green" "(3/5) End losetup_mount_img" "make_${flippy_file} losetup to ${lodev} ..."
+     echo_color "green" "(3/6) End losetup_mount_img" "make_${flippy_file} losetup to ${lodev} ..."
 
 }
 
@@ -137,7 +140,7 @@ edit_uenv() {
   cd ${boot_tmp}
 
         if [  ! -f "uEnv.txt" ]; then
-           echo_color "red" "(4/5) Error: uEnv.txt Files does not exist"  "\n \
+           echo_color "red" "(4/6) Error: uEnv.txt Files does not exist"  "\n \
            Please check if the following one files exist: \n \
            ${boot_tmp}/uEnv.txt"
         fi
@@ -149,16 +152,16 @@ edit_uenv() {
             old_x96_dtb="#FDT=\/dtb\/amlogic\/meson-sm1-x96-max-plus-100m.dtb"
             new_x96_dtb="FDT=\/dtb\/amlogic\/meson-sm1-x96-max-plus-100m.dtb"
             sed -i "s/^${old_x96_dtb}/${new_x96_dtb}/g" uEnv.txt
-            echo_color "yellow" "(4/5) x96: Convert completed" "..."
+            echo_color "yellow" "(4/6) x96: Convert completed" "..."
             ;;
         hk1)
             old_hk1_dtb="#FDT=\/dtb\/amlogic\/meson-sm1-hk1box-vontar-x3.dtb"
             new_hk1_dtb="FDT=\/dtb\/amlogic\/meson-sm1-hk1box-vontar-x3.dtb"
             sed -i "s/^${old_hk1_dtb}/${new_hk1_dtb}/g" uEnv.txt
-            echo_color "yellow" "(4/5) hk1: Convert completed" "..."
+            echo_color "yellow" "(4/6) hk1: Convert completed" "..."
             ;;
         *)
-            echo_color "red" "(4/5) Have no this firmware: ${convert_firmware}"  "Please select from this list: [ ${firmware_list[@]} ]"
+            echo_color "red" "(4/6) Have no this firmware: ${convert_firmware}"  "Please select from this list: [ ${firmware_list[@]} ]"
             no_firmware=ture
             ;;
         esac
@@ -167,51 +170,68 @@ edit_uenv() {
             old_n1_dtb="FDT=\/dtb\/amlogic\/meson-gxl-s905d-phicomm-n1.dtb"
             new_n1_dtb="#FDT=\/dtb\/amlogic\/meson-gxl-s905d-phicomm-n1.dtb"
             sed -i "s/^${old_n1_dtb}/${new_n1_dtb}/g" uEnv.txt
-            echo_color "yellow" "(4/5) old-phicomm-n1: dtb have close" "..."
+            echo_color "yellow" "(4/6) old-phicomm-n1: dtb have close" "..."
         else
-            echo_color "red" "(4/5) Error: Did not match the appropriate type" "..."
+            echo_color "red" "(4/6) Error: Did not match the appropriate type" "..."
         fi
 
      sync
 
-  echo_color "green" "(4/5) End edit_uenv:" "For: ${firmware_dtb} ..."
+     echo_color "green" "(4/6) End edit_uenv" "For: ${firmware_dtb} ..."
 
+}
+
+#write bootloader
+write_bootloader() {
+
+    cd ../../${root_tmp}
+    BTLD_BIN="root/hk1box-bootloader.img"
+    if [ -f ${BTLD_BIN} ]; then
+       mkdir -p lib/u-boot
+       cp ${BTLD_BIN} lib/u-boot/
+       echo_color "yellow" "(5/6) Write bootloader" "[ $(ls lib/u-boot/*.img) ] Can be used for TF card startup."
+       dd if=${BTLD_BIN} of=${lodev} bs=1 count=442 conv=fsync 2>/dev/null
+       dd if=${BTLD_BIN} of=${lodev} bs=512 skip=1 seek=1 conv=fsync 2>/dev/null
+    else
+       echo_color "red" "(5/6) Error: bootloader does not exist" "..."
+    fi
+    cd ../../
+
+    echo_color "green" "(5/6) End write_bootloader" "[ ${BTLD_BIN} ] has been write complete ..."
 }
 
 #umount & del losetup
 umount_ulosetup() {
 
-  cd ../../
-     
      umount -f ${boot_tmp} 2>/dev/null
      umount -f ${root_tmp} 2>/dev/null
      losetup -d ${lodev} 2>/dev/null
-     [ $? = 0 ] || echo_color "red" "(5/5) umount ${lodev} failed!" "..."
+     [ $? = 0 ] || echo_color "red" "(6/6) umount ${lodev} failed!" "..."
      
      [ -d ${build_save_folder} ] || mkdir -p ${build_save_folder}
      openwrt_filename=openwrt_${firmware_dtb}_${flippy_file%.*}_$(date +"%Y.%m.%d").img
      cp -f ${flippy_folder}/make_${flippy_file} ${build_save_folder}/${openwrt_filename}
      chmod -R 777 ${build_save_folder}
-     echo_color "yellow" "(5/5) Convert to ${build_save_folder}/${openwrt_filename}" "..."
+     echo_color "yellow" "(6/6) Convert to ${build_save_folder}/${openwrt_filename}" "..."
      
      sync
 
      rm -rf  ${build_tmp_folder}  ${flippy_folder}/make_${flippy_file}  2>/dev/null
 
-  echo_color "green" "(5/5) End umount_ulosetup"  "Del: ${lodev} ..."
+  echo_color "green" "(6/6) End umount_ulosetup"  "Del: ${lodev} ..."
 
 }
 
 #Parameter validity check
-if [[ ! -n "${convert_firmware}" ]]; then echo_color "red" "(0/5) Parameter is empty!" "..."; fi
-if [[ ! "${firmware_list[@]}"  =~ "${convert_firmware}" ]] &&  [[ ! "${convert_firmware}" = "all" ]]; then echo_color "red" "(0/5) Parameter error" "..."; fi
+if [[ ! -n "${convert_firmware}" ]]; then echo_color "red" "(0/6) Parameter is empty!" "..."; fi
+if [[ ! "${firmware_list[@]}"  =~ "${convert_firmware}" ]] &&  [[ ! "${convert_firmware}" = "all" ]]; then echo_color "red" "(0/6) Parameter error" "..."; fi
 
 # begin run the script
 echo_color "purple" "Start convert"  "..."
-[ $( ls $flippy_folder/*.zip | wc -l ) -gt 0 ] && check_zip_file || echo_color "green" "(1/5) End check_zip_file" "Have no *.zip Files..."
+[ $( ls $flippy_folder/*.zip | wc -l ) -gt 0 ] && check_zip_file || echo_color "green" "(1/6) End check_zip_file" "Have no *.zip Files..."
 
 # Use Phicomm N1 firmware (*.img) to build s905x3 related firmware (x96 hk1)
-[ $( ls $flippy_folder/*.img | wc -l ) -eq 0 ] && echo_color "red" "(0/5) Error: *.img Files does not exist!" || {
+[ $( ls $flippy_folder/*.img | wc -l ) -eq 0 ] && echo_color "red" "(0/6) Error: *.img Files does not exist!" || {
     for kernel in $( ls $flippy_folder/*.img ); do
         if [ ${convert_firmware} = "all" ];then
               for x in ${firmware_list[@]}; do
@@ -219,6 +239,7 @@ echo_color "purple" "Start convert"  "..."
                    check_build_files ${kernel#*/}
                    losetup_mount_img
                    edit_uenv ${x}
+                   write_bootloader
                    umount_ulosetup
               }
               done
@@ -227,6 +248,7 @@ echo_color "purple" "Start convert"  "..."
                    check_build_files ${kernel#*/}
                    losetup_mount_img
                    edit_uenv ${convert_firmware}
+                   write_bootloader
                    umount_ulosetup
               }
         fi

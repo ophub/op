@@ -7,7 +7,7 @@ die() {
 emmc=$(lsblk | grep -oE 'mmcblk[0-9]' | sort | uniq)
 dev_emmc="/dev/$emmc"
 
-if [ $(blkid | grep -E 'BOOT_EMMC|ROOT_EMMC|DATA' | wc -l) != 3 ]; then
+if [ $(blkid ${dev_emmc}p[1-3]| grep -E 'BOOT_EMMC|ROOT_EMMC|DATA' | wc -l) != 3 ]; then
     die "you have never installed a OS to emmc, please boot with usb and run n1-install to install at first!"
 fi
 

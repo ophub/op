@@ -1,0 +1,119 @@
+#========================================================================================================================
+# https://github.com/ophub/op
+# Description: Automatically Build OpenWrt for Phicomm N1
+# Function: Workflows for Build Phicomm N1
+# Cron: min (0 - 59) / hour (0 - 23) / day of month (1 - 31) / month (1 - 12) / day of week (0 - 6)(Sunday - Saturday)
+#========================================================================================================================
+
+name: Test Build Phicomm N1
+
+on:
+  repository_dispatch:
+  workflow_dispatch:
+    inputs:
+      ssh:
+        description: 'SSH connection to Actions'
+        required: false
+        default: 'false'
+  #release:
+    #types: published
+  #push:
+    #branches:
+      #- main
+    #paths:
+      #- '.github/workflows/test-build-phicomm_n1.yml'
+  #schedule:
+    #- cron: '0 0 * * 5'
+  #watch:
+    #types: started
+
+env:
+  OPENWRT_PATH: router/phicomm_n1
+  UPLOAD_FIRMWARE: true
+  UPLOAD_RELEASE: true
+  UPLOAD_WETRANSFER: true
+  RECENT_LASTEST: 30
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    if: github.event.repository.owner.id == github.event.sender.id
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Check space usage
+      if: (!cancelled())
+      run: df -hT
+
+    - name: SSH connection to Actions @ Ctrl+C to enter, Ctrl+D to exit
+      uses: P3TERX/ssh2actions@main
+      if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
+      env:
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+
+    - name: download firmware for N1
+      id: download
+      if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      run: |
+        curl -s "https://api.github.com/repos/ophub/op/releases" | grep -o "openwrt_.*/openwrt_phicomm_.*\.zip" | head -n 1 > DOWNLOAD_URL
+        [ -s DOWNLOAD_URL ] && wget -q -P ${{ env.OPENWRT_PATH }}/openwrt https://github.com/ophub/op/releases/download/$(cat DOWNLOAD_URL)
+        cd ${{ env.OPENWRT_PATH }}/openwrt && unzip *.zip && sync
+        rm -rf $( find ${PWD}/* -type d )
+        rm -rf $( find ${PWD}/* -type f ! -name "*.tar.gz" )
+        [ -f *.tar.gz ] && echo -e $(ls *.tar.gz) file exist || echo -e *.tar.gz file does not exist
+        echo "FILE_DATE=$(date +"%Y.%m.%d")" >> $GITHUB_ENV
+        echo "::set-output name=status::success"
+
+    - name: Build firmware for N1
+      id: build
+      if: steps.download.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      run: |
+        sudo chmod +x ${{ env.OPENWRT_PATH }}/make
+        sudo ${{ env.OPENWRT_PATH }}/make -d
+        cd ${{ env.OPENWRT_PATH }}/out
+        for x in $(ls .); do
+          cd $x && gzip *.img && cd ../
+        done
+        cp -rf ../openwrt/* .
+        zip -r openwrt_phicomm_n1_${{ env.FILE_DATE }}.zip *
+        echo "FILEPATH=$PWD/$(ls *.zip)" >> $GITHUB_ENV
+        echo "::set-output name=status::success"
+
+    - name: Upload firmware directory for Phicomm N1
+      uses: actions/upload-artifact@v2
+      if: steps.build.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      with:
+        name: openwrt_phicomm_n1_${{ env.FILE_DATE }}
+        path: ${{ env.FILEPATH }}
+        retention-days: ${{ env.RECENT_LASTEST }}
+
+    - name: Upload firmware to WeTransfer
+      if: steps.build.outputs.status == 'success' && env.UPLOAD_WETRANSFER == 'true' && !cancelled()
+      run: |
+        curl -fsSL git.io/file-transfer | sh
+        ./transfer wet -s -p 16 --no-progress ${{ env.FILEPATH }} 2>&1 | tee wetransfer.log
+        echo "WET_URL=$(cat wetransfer.log | grep https | cut -f3 -d" ")" >> $GITHUB_ENV
+
+    - name: Upload Phicomm N1 firmware to release
+      uses: svenstaro/upload-release-action@v2
+      if: steps.build.outputs.status == 'success' && env.UPLOAD_RELEASE == 'true' && !cancelled()
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ${{ env.FILEPATH }}
+        tag: openwrt_phicomm_n1_${{ env.FILE_DATE }}
+        overwrite: true
+        file_glob: true
+        body: |
+          This is OpenWrt firmware for Phicomm N1
+          * Firmware information
+          Default IP: 192.168.1.1
+          Default username: root
+          Default password: password
+          Default WIFI name: OpenWrt
+          Default WIFI password: none
+          [WETRANSFER](${{ env.WET_URL }})
+     

@@ -147,13 +147,16 @@ On the [Action](https://github.com/ophub/op/actions) page. Select ***`Build Open
  │       │       ├── modules-${flippy_version}.tar.gz
  │       │       └── or ${flippy_file} E.g: N1_Openwrt_*.img
  │       │     
- │       └── install-program                           # Install to emmc for PHICOMM N1
+ │       └── install-program                           # Install openwrt firmware to emmc
  │           ├── Makefile            
  │           └── files
- │               ├── fstab 
- │               ├── n1-install.sh                     # Install script
- │               ├── n1-update.sh                      # update script
- │               └── u-boot-2015-phicomm-n1.bin        # Recovery emmc partition script
+ │               ├── fstab                             # Disk mount information
+ │               ├── n1-install.sh                     # Install to emmc for PHICOMM-N1
+ │               ├── n1-update.sh                      # update firmware for PHICOMM-N1
+ │               ├── u-boot-2015-phicomm-n1.bin        # Recovery PHICOMM-N1 emmc partition
+ │               ├── s905x3-install.sh                 # Install to emmc for s905x3-box
+ │               ├── s905x3-update.sh                  # update firmware for s905x3-box
+ │               └── hk1box-bootloader.img             # Recovery s905x3-box emmc partition 
  │
  ├── LICENSE                                           # LICENSE for OP
  └── README.md                                         # Instructions for OP

@@ -72,6 +72,7 @@ Please select S905x3 box model:
 5. X96-Max+(S905x3) [Overclocked version] Note: If you choose this model, a new bootloader will be flashed!
 6. HK1 Box(S905x3) [Overclocked version]
 7. H96 Max X3(S905x3) [Overclocked version]
+8. Octopus-Planet(S905x3)
 
 0. Other
 --------------------------------------
@@ -99,6 +100,9 @@ case $boxtype in
     7) FDTFILE="meson-sm1-h96-max-x3-oc.dtb"
       U_BOOT_EXT=1
       ;;
+    8) FDTFILE="meson-gxm-octopus-planet.dtb"
+      U_BOOT_EXT=1
+      ;;  
     0) cat <<EOF
 Please enter the dtb file name, for example: $FDTFILE
 The custom dtb file may not work, please choose carefully！

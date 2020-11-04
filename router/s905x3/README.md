@@ -104,6 +104,9 @@ FDT=/dtb/amlogic/meson-sm1-x96-max-plus-100m.dtb
 # X96 Max ( S905X2 Network: 100M / TF card: 50Mhz / CPU: 1944Mhz )
 #Applicable to most S905x2, 2G memory 100M network card boxes.
 #FDT=/dtb/amlogic/meson-g12a-x96-max-rmii.dtb
+
+# octopus-planet ( S905X3 Network: 1000M / TF card: 30Mhz / CPU: 2124Mhz )
+#FDT=/dtb/amlogic/meson-gxm-octopus-planet.dtb
 ````
 
 Method: Add # in front of the dtb file path of Phicomm N1, and remove the # in front of the firmware you need. 

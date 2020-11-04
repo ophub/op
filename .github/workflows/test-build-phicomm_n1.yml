@@ -48,13 +48,6 @@ jobs:
       if: (!cancelled())
       run: df -hT
 
-    - name: SSH connection to Actions @ Ctrl+C to enter, Ctrl+D to exit
-      uses: P3TERX/ssh2actions@main
-      if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
-      env:
-        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-
     - name: download firmware for N1
       id: download
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
@@ -82,6 +75,13 @@ jobs:
         zip -r openwrt_phicomm_n1_${{ env.FILE_DATE }}.zip *
         echo "FILEPATH=$PWD/$(ls *.zip)" >> $GITHUB_ENV
         echo "::set-output name=status::success"
+
+    - name: SSH connection to Actions @ Ctrl+C to enter, Ctrl+D to exit
+      uses: P3TERX/ssh2actions@main
+      if: (github.event.inputs.ssh == 'true' && github.event.inputs.ssh  != 'false') || contains(github.event.action, 'ssh')
+      env:
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
 
     - name: Upload firmware directory for Phicomm N1
       uses: actions/upload-artifact@v2

@@ -41,7 +41,7 @@ define Package/$(PKG_NAME)/install
 	$(INSTALL_BIN) ./files/n1-install.sh $(1)/usr/bin/n1-install.sh
 	$(INSTALL_BIN) ./files/n1-update.sh $(1)/usr/bin/n1-update.sh
 	$(INSTALL_BIN) ./files/s905x3-install.sh $(1)/root/s905x3-install.sh
-	$(INSTALL_BIN) ./files/s905x3-update.sh $(1)/mnt/mmcblk2p4/s905x3-update.sh
+	$(INSTALL_BIN) ./files/s905x3-update.sh $(1)/root/s905x3-update.sh
 	$(INSTALL_BIN) ./files/u-boot-2015-phicomm-n1.bin $(1)/root/u-boot-2015-phicomm-n1.bin
 	$(INSTALL_BIN) ./files/hk1box-bootloader.img $(1)/root/hk1box-bootloader.img
 	$(INSTALL_CONF) ./files/fstab $(1)/etc/config/fstab

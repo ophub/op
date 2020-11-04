@@ -9,8 +9,8 @@ You can download the OpwnWrt for S905x3 firmware from [Actions](https://github.c
 
 ## Firmware instructions
 
-- `openwrt_hk1_*.img`: For X96-Max+(S905x3) / H96-Max-X3-Round(S905x3)
-- `openwrt_x96_*.img`: For HK1-Box(S905x3)
+- `openwrt_x96_*.img`: Almost compatible with all S905x3 boxes to boot from USB hard disk, you can choose different box types when installing into EMMC.
+- `openwrt_hk1_*.img`: For HK1-Box(S905x3).
 
 ## Install into emmc
 
@@ -24,13 +24,7 @@ The firmware supports USB hard disk booting. You can also Install the OpenWrt fi
 
 - Log in to the system: Connect the computer and the s905x3 box with a network interface → turn off the wireless wifi on the computer → enable the wired connection → manually set the computer ip to the same network segment ip as openwrt, ipaddr such as ***`192.168.1.2`***. The netmask is ***`255.255.255.0`***, and others are not filled in. You can log in to the openwrt system from the browser, Enter OpwnWrt's IP Address: ***`192.168.1.1`***, Account: ***`root`***, Password: ***`password`***, and then log in OpenWrt system.
 
-- Restore the bootloader: You first need to Update the bootloader to support 1000M/s (X96-Max+ / H96-Max-X3-Round / HK1-Box ***`universal hk1box-bootloader.img`***). `Login in to openwrt` → `system menu` → `TTYD terminal` → input command: 
-
-```shell script
-dd if=/root/hk1box-bootloader.img of=/dev/mmcblk2 bs=1M count=4 conv=fsync
-sync
-reboot
-```
+- Tips: When booting from USB, the network card is 100M, and it will automatically become Gigabit after writing into EMMC.
 
 - Install OpenWrt: `Login in to openwrt` → `system menu` → `TTYD terminal` → input command: 
 ```shell script
@@ -45,6 +39,7 @@ Wait for the installation to complete. remove the USB hard disk, unplug/plug in 
 Upgrading OpenWrt: `Login in to openwrt` → `system menu` → `file transfer` → upload ***`s905x3-openwrt.zip`*** to ***`/tmp/upload/`***, enter the `system menu` → `TTYD terminal` → input command: 
 ```shell script
 mv -f /tmp/upload/s905x3-openwrt.zip /mnt/mmcblk2p4
+cp -f /root/s905x3-update.sh /mnt/mmcblk2p4
 cd /mnt/mmcblk2p4
 unzip s905x3-openwrt.zip    #Unzip the [ s905x3-openwrt.zip ] file to get [ s905x3-openwrt.img ]
 chmod 755 s905x3-update.sh
@@ -74,29 +69,52 @@ example: ~/op/router/s905x3/
  └── make
  ```
 
-## /boot/uEnv.txt:
+## /boot/uEnv.txt FDT FILES
 
 ```shell script
 #Phicomm-N1
 #FDT=/dtb/amlogic/meson-gxl-s905d-phicomm-n1.dtb
-#Phicomm-N1 (thresh)
-#FDT=/dtb/amlogic/meson-gxl-s905d-phicomm-n1-thresh.dtb
-#
-#X96-Max+ & H96-Max-X3-Round (100m) [tag: x96]
+
+# X96 Max+ [tag: x96] ( S905X3 Network: 100m / TF card: 30Mhz / CPU: 2124Mhz ) 
+#The default DTB when the USB flash drive is started, almost compatible with all S905x3 boxes.
 FDT=/dtb/amlogic/meson-sm1-x96-max-plus-100m.dtb
-#X96-Max+ & H96-Max-X3-Round (1000m)
+
+# X96 Max+ ( S905X3 Network: 1000M / TF card: 30Mhz / CPU: 2124Mhz )
 #FDT=/dtb/amlogic/meson-sm1-x96-max-plus.dtb
-#
-#HK1-Box [tag: hk1]
+
+# X96 Max+ ( S905X3 Network: 1000M / TF card: 30Mhz / CPU: 2244Mhz )
+#FDT=/dtb/amlogic/meson-sm1-x96-max-plus-oc.dtb
+
+# HK1 BoX [tag: hk1] ( S905X3 Network: 1000M / TF card: 25Mhz / CPU: 2124Mhz )
 #FDT=/dtb/amlogic/meson-sm1-hk1box-vontar-x3.dtb
+
+# HK1 BoX ( S905X3 Network: 1000M / TF card: 25Mhz / CPU: 2184Mhz )
+#FDT=/dtb/amlogic/meson-sm1-hk1box-vontar-x3-oc.dtb
+
+# H96 Max X3 ( S905X3 Network: 1000M / TF card: 50Mhz / CPU: 2124Mhz )
+#FDT=/dtb/amlogic/meson-sm1-h96-max-x3.dtb
+
+# H96 Max X3 ( S905X3 Network: 1000M / TF card: 50Mhz / CPU: 2208Mhz )
+#FDT=/dtb/amlogic/meson-sm1-h96-max-x3-oc.dtb
+
+# X96 Max ( S905X2 Network: 1000M / TF card: 50Mhz / CPU: 1944Mhz )
+#Applicable to most S905x2, 4G memory Gigabit network card boxes.
+#FDT=/dtb/amlogic/meson-g12a-x96-max.dtb
+
+# X96 Max ( S905X2 Network: 100M / TF card: 50Mhz / CPU: 1944Mhz )
+#Applicable to most S905x2, 2G memory 100M network card boxes.
+#FDT=/dtb/amlogic/meson-g12a-x96-max-rmii.dtb
 ````
 
 Method: Add # in front of the dtb file path of Phicomm N1, and remove the # in front of the firmware you need. 
 
 ## Detailed make compile command
-- `sudo ./make all`: All S905x3 ( X96-Max+, H96-Max-X3-Round & HK1-Box ) OpenWrt firmware according to the default configuration firmware. This command is recommended.
-- `sudo ./make x96`: Build the OpenWrt firmware of X96-Max+ & H96-Max-X3-Round according to the default configuration.
-- `sudo ./make hk1`: Build the OpenWrt firmware of HK1-Box according to the default configuration.
+
+```shell script
+sudo ./make x96  #Almost compatible with all S905x3 boxes to boot from USB hard disk, Choose box types when installing into EMMC.
+sudo ./make hk1  #Build the OpenWrt firmware of HK1-Box according to the default configuration.
+sudo ./make all  #Build All S905x3 OpenWrt firmware according to the default configuration firmware. 
+````
 
 ## Compilation method
 

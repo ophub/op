@@ -11,10 +11,10 @@ if [ $(blkid ${dev_emmc}p[1-3]| grep -E 'BOOT_EMMC|ROOT_EMMC|DATA' | wc -l) != 3
     die "you have never installed a OS to emmc, please boot with usb and run n1-install to install at first!"
 fi
 
-image="/tmp/upgrade/*.img"
-[ -f $image ] || die "no upgrade image found in /tmp/upgrade!!"
+image="/opt/*.img"
+[ -f $image ] || die "no upgrade image found in /opt/ "
 
-echo "start upgrade from $(ls /tmp/upgrade | grep '.img$')..."
+echo "start upgrade from $(ls /opt | grep '.img$')..."
 
 loop=$(losetup -P -f --show $image)
 [ "$loop" ] || die "create loop device failed!!"
@@ -86,7 +86,7 @@ macaddr=$(uuidgen | md5sum | sed 's/^\(..\)\(..\)\(..\)\(..\)\(..\).*$/fc:\1:\2:
     )
 }
 
-rm -f ${mnt_loop}p2/usr/bin/n1-install
+rm -f ${mnt_loop}p2/usr/bin/n1-install.sh
 tune2fs -L "ROOT_EMMC" ${loop}p2 >/dev/null
 
 echo -e "

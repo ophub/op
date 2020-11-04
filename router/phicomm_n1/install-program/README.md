@@ -12,11 +12,16 @@ n1-install.sh
 # Wait for the installation to complete. remove the USB hard disk, unplug/plug in the power again, reboot into EMMC.
 ```
 
-Upgrading OpenWrt: `Login in to openwrt` → `system menu` → `file transfer` → upload to `/tmp/upgrade/xxx.img`, enter the `system menu` → `TTYD terminal` → input command: 
+Upgrading OpenWrt: `Login in to openwrt` → `system menu` → `file transfer` → upload ***`phicomm-n1-openwrt.zip`*** to ***`/tmp/upload/`***`, enter the `system menu` → `TTYD terminal` → input command: 
 ```shell script
+mv -f /tmp/upload/phicomm-n1-openwrt.zip  /opt
+cd /opt
+unzip phicomm-n1-openwrt.zip     #Unzip the [ phicomm-n1-openwrt.zip ] file to get [ phicomm-n1-openwrt.img ]
+cd /
 n1-update.sh
-reboot          #Enter the reboot command to restart.
+reboot
 ```
+
 If the partition fails and cannot be written, you can restore the bootloader, restart it, and run the relevant command again.
 ```shell script
 dd if=/root/u-boot-2015-phicomm-n1.bin of=/dev/mmcblk1
@@ -40,6 +45,7 @@ Wait for the installation to complete. remove the USB hard disk, unplug/plug in 
 Upgrading OpenWrt: `Login in to openwrt` → `system menu` → `file transfer` → upload ***`s905x3-openwrt.zip`*** to ***`/tmp/upload/`***, enter the `system menu` → `TTYD terminal` → input command: 
 ```shell script
 mv -f /tmp/upload/s905x3-openwrt.zip /mnt/mmcblk2p4
+cp -f /root/s905x3-update.sh /mnt/mmcblk2p4
 cd /mnt/mmcblk2p4
 unzip s905x3-openwrt.zip    #Unzip the [ s905x3-openwrt.zip ] file to get [ s905x3-openwrt.img ]
 chmod 755 s905x3-update.sh

@@ -63,57 +63,60 @@ echo "BOOT: $BOOT_NAME"
 FDTFILE="meson-sm1-x96-max-plus.dtb"
 U_BOOT_EXT=0
 cat <<EOF
---------------------------------------
+--------------------------------------------------------------------------
 Please select S905x3 box model:
-1. X96-Max+(S905x3) Note: If you choose this model, a new bootloader will be flashed!
-2. HK1 Box(S905x3)
-3. H96 Max X3(S905x3)
-4. X96-Max(S905x2)
-5. X96-Max+(S905x3) [Overclocked version] Note: If you choose this model, a new bootloader will be flashed!
-6. HK1 Box(S905x3) [Overclocked version]
-7. H96 Max X3(S905x3) [Overclocked version]
-8. Octopus-Planet(S905x3)
+1. X96-Max+        [ S905x3: NETWORK: 1000M / TF: 30Mtz / CPU: 2124Mtz ]
+2. HK1-Box         [ S905x3: NETWORK: 1000M / TF: 25Mtz / CPU: 2124Mtz ]
+3. H96-Max-X3      [ S905x3: NETWORK: 1000M / TF: 50Mtz / CPU: 2124Mtz ]
+4. X96-Max-4G      [ S905x2: NETWORK: 1000M / TF: 50Mtz / CPU: 1944Mtz ]
+5. X96-Max-2G      [ S905x2: NETWORK: 100M  / TF: 50Mtz / CPU: 1944Mtz ]
+6. X96-Max+        [ S905x3: NETWORK: 1000M / TF: 30Mtz / CPU: 2244Mtz ]
+7. HK1-Box         [ S905x3: NETWORK: 1000M / TF: 25Mtz / CPU: 2184Mtz ]
+8. H96-Max-X3      [ S905x3: NETWORK: 1000M / TF: 50Mtz / CPU: 2208Mtz ]
+9. Octopus-Planet  [ S905x3: NETWORK: 1000M / TF: 30Mtz / CPU: 2124Mtz ]
 
-0. Other
---------------------------------------
+0. Other           [ Enter the dtb file name ]
+--------------------------------------------------------------------------
 EOF
-echo "Please choose:"
-read boxtype
-case $boxtype in 
-    1) FDTFILE="meson-sm1-x96-max-plus.dtb"
-      U_BOOT_EXT=1
-      ;;
-    2) FDTFILE="meson-sm1-hk1box-vontar-x3.dtb"
-      U_BOOT_EXT=1
-      ;;
-    3) FDTFILE="meson-sm1-h96-max-x3.dtb"
-      U_BOOT_EXT=1
-      ;;
-    4) FDTFILE="meson-g12a-x96-max.dtb"
-      ;;
-    5) FDTFILE="meson-sm1-x96-max-plus-oc.dtb"
-      U_BOOT_EXT=1
-      ;;
-    6) FDTFILE="meson-sm1-hk1box-vontar-x3-oc.dtb"
-      U_BOOT_EXT=1
-      ;;
-    7) FDTFILE="meson-sm1-h96-max-x3-oc.dtb"
-      U_BOOT_EXT=1
-      ;;
-    8) FDTFILE="meson-gxm-octopus-planet.dtb"
-      U_BOOT_EXT=1
-      ;;  
-    0) cat <<EOF
-Please enter the dtb file name, for example: $FDTFILE
-The custom dtb file may not work, please choose carefully！
+echo  "Please choose:"
+read  boxtype
+case  $boxtype in
+      1) FDTFILE="meson-sm1-x96-max-plus.dtb"
+         U_BOOT_EXT=1
+         ;;
+      2) FDTFILE="meson-sm1-hk1box-vontar-x3.dtb"
+         U_BOOT_EXT=1
+         ;;
+      3) FDTFILE="meson-sm1-h96-max-x3.dtb"
+         U_BOOT_EXT=1
+         ;;
+      4) FDTFILE="meson-g12a-x96-max.dtb"
+         ;;
+      5) FDTFILE="meson-g12a-x96-max-rmii.dtb"
+         ;;
+      6) FDTFILE="meson-sm1-x96-max-plus-oc.dtb"
+         U_BOOT_EXT=1
+         ;;
+      7) FDTFILE="meson-sm1-hk1box-vontar-x3-oc.dtb"
+         U_BOOT_EXT=1
+         ;;
+      8) FDTFILE="meson-sm1-h96-max-x3-oc.dtb"
+         U_BOOT_EXT=1
+         ;;
+      9) FDTFILE="meson-gxm-octopus-planet.dtb"
+         U_BOOT_EXT=1
+         ;;
+      0) cat <<EOF
+Please enter the dtb file name, do not include the path.
+For example: $FDTFILE
 EOF
-	   echo "dtb File name [ do not include the path ]:"
-          read CUST_FDTFILE
-	   FDTFILE=$CUST_FDTFILE
-	   ;;
-       *) echo "Input error, exit!"
-	   exit 1
-	   ;;
+         echo  "dtb File name:"
+         read  CUST_FDTFILE
+         FDTFILE=$CUST_FDTFILE
+         ;;
+      *) echo "Input error, exit!"
+         exit 1
+         ;;
 esac
 
 if [  ! -f "/boot/dtb/amlogic/${FDTFILE}" ]; then
@@ -123,7 +126,7 @@ fi
 
 # backup old bootloader
 if [ ! -f backup-bootloader.img ]; then
-    echo "Backup bootloader -> backup-bootloader.img ... "
+    echo "Backup bootloader -> [ backup-bootloader.img ] ... "
     dd if=/dev/$EMMC_NAME of=backup-bootloader.img bs=1M count=4 conv=fsync
     echo "Backup bootloader complete."
     echo
@@ -252,7 +255,7 @@ dd if=/dev/zero of=/dev/${EMMC_NAME} bs=1M count=1 seek=$seek conv=fsync
 BLDR=/lib/u-boot/hk1box-bootloader.img
 if [ -f "${BLDR}" ]; then
     if echo "${FDTFILE}" | grep meson-sm1-x96-max-plus >/dev/null; then
-        echo "Write new bootloader ..."
+        echo "Write new bootloader: [ ${BLDR} ] ..."
         dd if=${BLDR} of="/dev/${EMMC_NAME}" conv=fsync bs=1 count=442
         dd if=${BLDR} of="/dev/${EMMC_NAME}" conv=fsync bs=512 skip=1 seek=1
         sync

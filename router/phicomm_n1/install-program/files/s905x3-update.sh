@@ -21,7 +21,7 @@ if  [ "${BOOT_PART_MSG}" == "" ]; then
 fi
 
 BR_FLAG=1
-echo -e "Do you want to backup the configuration of the old version and restore it to the upgraded system? y/n [y]\b\b"
+echo -e "Do you want to the upgraded system? y/n [y]\b\b"
 read yn
 case $yn in
      n*|N*) BR_FLAG=0;;
@@ -36,6 +36,7 @@ ROOT_PART_MSG=$(lsblk -l -o NAME,PATH,TYPE,UUID,MOUNTPOINT | awk '$3~/^part$/ &&
 ROOT_NAME=$(echo $ROOT_PART_MSG | awk '{print $1}')
 ROOT_PATH=$(echo $ROOT_PART_MSG | awk '{print $2}')
 ROOT_UUID=$(echo $ROOT_PART_MSG | awk '{print $4}')
+
 case $ROOT_NAME in 
   mmcblk2p2) NEW_ROOT_NAME=mmcblk2p3
 	     NEW_ROOT_LABEL=EMMC_ROOTFS2
@@ -47,6 +48,7 @@ case $ROOT_NAME in
              exit 1
              ;;
 esac
+echo "NEW_ROOT_NAME: [ ${NEW_ROOT_NAME} ]"
 
 # find new root partition
 NEW_ROOT_PART_MSG=$(lsblk -l -o NAME,PATH,TYPE,UUID,MOUNTPOINT | grep "${NEW_ROOT_NAME}" | awk '$3 ~ /^part$/ && $5 !~ /^\/$/ && $5 !~ /^\/boot$/ {print $0}')
@@ -54,10 +56,12 @@ if  [ "${NEW_ROOT_PART_MSG}" == "" ]; then
     echo "The new ROOTFS partition does not exist, so the upgrade cannot continue!"
 	  exit 1
 fi
+
 NEW_ROOT_NAME=$(echo $NEW_ROOT_PART_MSG | awk '{print $1}')
 NEW_ROOT_PATH=$(echo $NEW_ROOT_PART_MSG | awk '{print $2}')
 NEW_ROOT_UUID=$(echo $NEW_ROOT_PART_MSG | awk '{print $4}')
 NEW_ROOT_MP=$(echo $NEW_ROOT_PART_MSG | awk '{print $5}')
+echo "NEW_ROOT_MP: [ ${NEW_ROOT_MP} ]"
 
 # losetup
 losetup -f -P $IMG_NAME
@@ -71,14 +75,13 @@ else
     echo "losetup [ $IMG_FILE ] failed!"
     exit 1
 fi
+
 WAIT=3
-echo "The loopdev is [ $LOOP_DEV ], wait [ ${WAIT} ] seconds "
+echo "The loopdev is [ $LOOP_DEV ], wait [ ${WAIT} ] seconds. "
 while [ $WAIT -ge 1 ]; do
-      echo "."
       sleep 1
       WAIT=$(( WAIT - 1 ))
 done
-echo
 
 # umount loop devices (openwrt will auto mount some partition)
 MOUNTED_DEVS=$(lsblk -l -o NAME,PATH,MOUNTPOINT | grep "$LOOP_DEV" | awk '$3 !~ /^$/ {print $2}')
@@ -89,7 +92,6 @@ for dev in $MOUNTED_DEVS; do
         sleep 1
         mnt=$(lsblk -l -o NAME,PATH,MOUNTPOINT | grep "$dev" | awk '$3 !~ /^$/ {print $2}')
         if  [ "$mnt" == "" ]; then
-            echo "success."
             break
         else 
             echo "Retry ..."
@@ -102,32 +104,29 @@ WORK_DIR=$PWD
 P1=${WORK_DIR}/boot
 P2=${WORK_DIR}/root
 mkdir -p $P1 $P2
+
 echo "Mount [ ${LOOP_DEV}p1 ] -> [ ${P1} ] ... "
-mount -t vfat -o ro ${LOOP_DEV}p1 ${P1}
+mount -t vfat ${LOOP_DEV}p1 ${P1}
 if  [ $? -ne 0 ]; then
-    echo "Mount [ ${LOOP_DEV}p1 ] failed!"
+    echo "Mount p1 [ ${LOOP_DEV}p1 ] failed!"
     losetup -D
     exit 1
-else 
-    echo "success."
 fi	
 
 echo "Mount [ ${LOOP_DEV}p2 ] -> [ ${P2} ] ... "
-mount -t btrfs -o ro,compress=zstd ${LOOP_DEV}p2 ${P2}
+mount -t ext4 ${LOOP_DEV}p2 ${P2}
 if  [ $? -ne 0 ]; then
-    echo "Mount [ ${LOOP_DEV}p2 ] failed!"
+    echo "Mount p2 [ ${LOOP_DEV}p2 ] failed!"
     umount -f ${P1}
     losetup -D
     exit 1
-else
-    echo "success."
 fi	
 
 #format NEW_ROOT
 echo "umount [ ${NEW_ROOT_MP} ]"
 umount -f "${NEW_ROOT_MP}"
 if  [ $? -ne 0 ]; then
-    echo "Mount failed, Please restart and try again!"
+    echo "Mount [ ${NEW_ROOT_MP} ] failed, Please restart and try again!"
     umount -f ${P1}
     umount -f ${P2}
     losetup -D
@@ -157,7 +156,7 @@ fi
 
 # begin copy rootfs
 cd ${NEW_ROOT_MP}
-echo "Start copying data， 从 [ ${P2} ] TO [ ${NEW_ROOT_MP} ] ..."
+echo "Start copying data， From [ ${P2} ] TO [ ${NEW_ROOT_MP} ] ..."
 ENTRYS=$(ls)
 for entry in $ENTRYS; do
     if  [ "$entry" == "lost+found" ]; then
@@ -165,32 +164,25 @@ for entry in $ENTRYS; do
     fi
     echo "Remove old [ $entry ] ... "
     rm -rf $entry 
-    if  [ $? -eq 0 ]; then
-        echo "success."
-    else
+    if  [ $? -ne 0 ]; then
         echo "failed."
         exit 1
     fi
 done
-echo
 
 echo "Create folder ... "
 mkdir -p .reserved bin boot dev etc lib opt mnt overlay proc rom root run sbin sys tmp usr www
 ln -sf lib/ lib64
 ln -sf tmp/ var
-echo "success."
-echo
 
 COPY_SRC="root etc bin sbin lib opt usr www"
-echo "Copy data ... "
+echo "Copy data brgin ... "
 for src in $COPY_SRC; do
-    echo "Copy $src ... "
+    echo "Copy [ $src ] ... "
     (cd ${P2} && tar cf - $src) | tar xf -
     sync
-    echo "success."
 done
-[ -d /mnt/mmcblk2p4/docker ] || mkdir -p /mnt/mmcblk2p4/docker
-rm -rf opt/docker && ln -sf /mnt/mmcblk2p4/docker/ opt/docker
+
 
 if  [ -f /mnt/${NEW_ROOT_NAME}/etc/config/AdGuardHome ]; then
     [ -d /mnt/mmcblk2p4/AdGuardHome/data ] || mkdir -p /mnt/mmcblk2p4/AdGuardHome/data
@@ -204,54 +196,21 @@ fi
 BOOTLOADER="./lib/u-boot/hk1box-bootloader.img"
 if  [ -f ${BOOTLOADER} ]; then
     if dmesg | grep 'AMedia X96 Max+'; then
-        echo "*** write u-boot ... "
+        echo "Write new bootloader [ ${BOOTLOADER} ] ... "
         # write u-boot
         dd if=${BOOTLOADER} of=/dev/mmcblk2 bs=1 count=442 conv=fsync
         dd if=${BOOTLOADER} of=/dev/mmcblk2 bs=512 skip=1 seek=1 conv=fsync
-        echo "*** success."
+        echo "Write complete."
     fi
 fi
 
 rm -f /mnt/${NEW_ROOT_NAME}/root/s905x3-install.sh
 sync
-echo "Copy complete."
-echo
-
-BACKUP_LIST=$(${P2}/usr/sbin/flippy -p)
-if  [ $BR_FLAG -eq 1 ]; then
-    # restore old config files
-    OLD_RELEASE=$(grep "DISTRIB_REVISION=" /etc/openwrt_release | awk -F "'" '{print $2}'|awk -F 'R' '{print $2}' | awk -F '.' '{printf("%02d%02d%02d\n", $1,$2,$3)}')
-    NEW_RELEASE=$(grep "DISTRIB_REVISION=" ./etc/uci-defaults/99-default-settings | awk -F "'" '{print $2}'|awk -F 'R' '{print $2}' | awk -F '.' '{printf("%02d%02d%02d\n", $1,$2,$3)}')
-    if  [ ${OLD_RELEASE} -le 200311 ] && [ ${NEW_RELEASE} -ge 200319 ]; then
-        mv ./etc/config/shadowsocksr ./etc/config/shadowsocksr.${NEW_RELEASE}
-    fi
-    mv ./etc/config/qbittorrent ./etc/config/qbittorrent.orig
-    
-    echo "Start to restore the configuration file backed up from the old system ... "
-    (
-        cd /
-        eval tar czf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
-    )
-    tar xzf ${NEW_ROOT_MP}/.reserved/openwrt_config.tar.gz
-    if  [ ${OLD_RELEASE} -le 200311 ] && [ ${NEW_RELEASE} -ge 200319 ]; then
-        mv ./etc/config/shadowsocksr ./etc/config/shadowsocksr.${OLD_RELEASE}
-        mv ./etc/config/shadowsocksr.${NEW_RELEASE} ./etc/config/shadowsocksr
-    fi
-    if  grep 'config qbittorrent' ./etc/config/qbittorrent; then
-        rm -f ./etc/config/qbittorrent.orig
-    else
-        mv ./etc/config/qbittorrent.orig ./etc/config/qbittorrent
-    fi
-    sed -e "s/option wan_mode 'false'/option wan_mode 'true'/" -i ./etc/config/dockerman 2>/dev/null
-    sed -e 's/config setting/config verysync/' -i ./etc/config/verysync
-    sync
-    echo "complete."
-    echo
-fi
+echo "Copy data complete ..."
 
 echo "Modify the configuration file ... "
 rm -f "./etc/rc.local.orig" "./usr/bin/mk_newpart.sh" "./etc/part_size"
-rm -rf "./opt/docker" && ln -sf "/mnt/mmcblk2p4/docker" "./opt/docker"
+
 cat > ./etc/fstab <<EOF
 UUID=${NEW_ROOT_UUID} / btrfs compress=zstd 0 1
 LABEL=EMMC_BOOT /boot vfat defaults 0 2
@@ -259,7 +218,7 @@ LABEL=EMMC_BOOT /boot vfat defaults 0 2
 EOF
 
 cat > ./etc/config/fstab <<EOF
-config global
+config  global
         option anon_swap '0'
         option anon_mount '1'
         option auto_swap '0'
@@ -267,7 +226,7 @@ config global
         option delay_root '5'
         option check_fs '0'
 
-config mount
+config  mount
         option target '/overlay'
         option uuid '${NEW_ROOT_UUID}'
         option enabled '1'
@@ -275,7 +234,7 @@ config mount
         option fstype 'btrfs'
         option options 'compress=zstd'
 
-config mount
+config  mount
         option target '/boot'
         option label 'EMMC_BOOT'
         option enabled '1'
@@ -291,23 +250,6 @@ EOF
 
 sed -e 's/ttyAMA0/ttyAML0/' -i ./etc/inittab
 sed -e 's/ttyS0/tty0/' -i ./etc/inittab
-sss=$(date +%s)
-ddd=$((sss/86400))
-sed -e "s/:0:0:99999:7:::/:${ddd}:0:99999:7:::/" -i ./etc/shadow
-if  [ `grep "sshd:x:22:22" ./etc/passwd | wc -l` -eq 0 ]; then
-    echo "sshd:x:22:22:sshd:/var/run/sshd:/bin/false" >> ./etc/passwd
-    echo "sshd:x:22:sshd" >> ./etc/group
-    echo "sshd:x:${ddd}:0:99999:7:::" >> ./etc/shadow
-fi
-
-if [ $BR_FLAG -eq 1 ]; then
-    #cp ${P2}/etc/config/passwall_rule/chnroute ./etc/config/passwall_rule/ 2>/dev/null
-    #cp ${P2}/etc/config/passwall_rule/gfwlist.conf ./etc/config/passwall_rule/ 2>/dev/null
-    sync
-    echo "complete."
-    echo
-fi
-eval tar czf .reserved/openwrt_config.tar.gz "${BACKUP_LIST}" 2>/dev/null
 
 rm -f ./etc/part_size ./usr/bin/mk_newpart.sh
 if  [ -x ./usr/sbin/balethirq.pl ]; then
@@ -321,10 +263,6 @@ fi
 mv ./etc/rc.local ./etc/rc.local.orig
 
 cat > ./etc/rc.local <<EOF
-if  [ ! -f /etc/rc.d/*dockerd ]; then
-    /etc/init.d/dockerd enable
-    /etc/init.d/dockerd start
-fi
 mv /etc/rc.local.orig /etc/rc.local
 exec /etc/rc.local
 exit
@@ -341,14 +279,12 @@ cp uEnv.txt /tmp/uEnv.txt
 U_BOOT_EMMC=0
 [ -f u-boot.emmc ] && U_BOOT_EMMC=1
 rm -rf *
-echo "complete."
+
 echo "Copy the new boot file ... "
 (cd ${P1} && tar cf - . ) | tar xf -
 [ $U_BOOT_EMMC -eq 1 ] && cp u-boot.sd u-boot.emmc
 rm -f aml_autoscript* s905_autoscript*
 sync
-echo "complete."
-echo
 
 echo "Update boot parameters ... "
 if  [ -f /tmp/uEnv.txt ]; then
@@ -370,13 +306,11 @@ EOF
 fi
 
 sync
-echo "complete."
-echo
 
 cd $WORK_DIR
 umount -f ${P1} ${P2}
 losetup -D
-rmdir ${P1} ${P2}
+rm -rf ${P1} ${P2}
+
 echo "The upgrade is complete, please [ restart ] the system!"
-echo
 

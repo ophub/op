@@ -1,4 +1,11 @@
 #!/bin/sh
+#===================================================================================
+# https://github.com/ophub/op
+# Description: Automatically Build OpenWrt for PHICOMM N1
+# Function: Install the openwrt system to the emmc storage for PHICOMM N1
+# Copyright (C) 2020 https://github.com/tuanqing/mknop
+# Copyright (C) 2020 https://github.com/ophub/op
+#===================================================================================
 
 die() {
     echo -e "\033[1;31mError:\033[0m $1" && exit 1

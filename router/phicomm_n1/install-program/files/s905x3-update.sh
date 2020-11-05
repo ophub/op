@@ -1,4 +1,11 @@
 #!/bin/sh
+#===================================================================================
+# https://github.com/ophub/op
+# Description: Automatically Build OpenWrt for s905x3-box
+# Function: Upgrading the openwrt system to the emmc storage for s905x3-box
+# Copyright (C) 2020 Flippy
+# Copyright (C) 2020 https://github.com/ophub/op
+#===================================================================================
 
 # check cmd param
 if  [ "$1" == "" ]; then

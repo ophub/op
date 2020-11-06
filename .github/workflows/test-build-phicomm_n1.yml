@@ -52,8 +52,8 @@ jobs:
       id: download
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
-        curl -s "https://api.github.com/repos/ophub/op/releases" | grep -o "openwrt_.*/openwrt_phicomm_.*\.zip" | head -n 1 > DOWNLOAD_URL
-        [ -s DOWNLOAD_URL ] && wget -q -P ${{ env.OPENWRT_PATH }}/openwrt https://github.com/ophub/op/releases/download/$(cat DOWNLOAD_URL)
+        curl -s "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases" | grep -o "openwrt_.*/openwrt_phicomm_.*\.zip" | head -n 1 > DOWNLOAD_URL
+        [ -s DOWNLOAD_URL ] && wget -q -P ${{ env.OPENWRT_PATH }}/openwrt https://github.com/${GITHUB_REPOSITORY}/releases/download/$(cat DOWNLOAD_URL)
         cd ${{ env.OPENWRT_PATH }}/openwrt && unzip *.zip && sync
         rm -rf $( find ${PWD}/* -type d )
         rm -rf $( find ${PWD}/* -type f ! -name "*.tar.gz" )
@@ -66,7 +66,7 @@ jobs:
       if: steps.download.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
         sudo chmod +x ${{ env.OPENWRT_PATH }}/make
-        sudo ${{ env.OPENWRT_PATH }}/make -u 5.4.72_5.7.15
+        sudo ${{ env.OPENWRT_PATH }}/make -u 5.4.60_5.7.10
         cd ${{ env.OPENWRT_PATH }}/out
         for x in $(ls .); do
           cd $x && gzip *.img && cd ../

@@ -62,8 +62,8 @@ jobs:
       id: download
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
-        curl -s "https://api.github.com/repos/ophub/op/releases" | grep -o "openwrt_.*/openwrt_phicomm_.*\.zip" | head -n 1 > DOWNLOAD_URL
-        [ -s DOWNLOAD_URL ] && wget -q -P ${{ env.OPENWRT_PATH }}/flippy https://github.com/ophub/op/releases/download/$(cat DOWNLOAD_URL)
+        curl -s "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases" | grep -o "openwrt_.*/openwrt_phicomm_.*\.zip" | head -n 1 > DOWNLOAD_URL
+        [ -s DOWNLOAD_URL ] && wget -q -P ${{ env.OPENWRT_PATH }}/flippy https://github.com/${GITHUB_REPOSITORY}/releases/download/$(cat DOWNLOAD_URL)
         echo "FILE_DATE=$(date +"%Y.%m.%d")" >> $GITHUB_ENV
         echo "::set-output name=status::success"
 

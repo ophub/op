@@ -162,7 +162,7 @@ jobs:
         mkdir -p $OPENWRT_ORGANIZE_PATH
         cp -rf openwrt/bin/targets/*/*/*.tar.gz $OPENWRT_ORGANIZE_PATH
         sudo chmod +x $MAKE_FILE
-        sudo $MAKE_FILE -d
+        sudo $MAKE_FILE -u 5.4.73_5.9.2
         cd $OUT_PATH
         for x in $(ls .); do
           cd $x && gzip *.img && cd ../

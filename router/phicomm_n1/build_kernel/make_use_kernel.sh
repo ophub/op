@@ -19,11 +19,13 @@
 # 01. Log in to the home directory of the local Ubuntu system
 # 02. git clone https://github.com/ophub/op.git
 # 03. cd ~/op/router/phicomm_n1/build_kernel/
-# 04. Put Flippy's ${build_boot}, ${build_dtb} & ${build_modules} three files into ${flippy_folder}
-# 05. Run: sudo ./make_use_kernel.sh
-# 06. The generated files path: ~/op/router/phicomm_n1/armbian/phicomm-n1/kernel/${build_save_folder}
-# 07. git push to your github
-# 08. Github.com Build openwrt: ~/op/.github/workflows/build-openwrt-phicomm_n1.yml
+# 04. Prepare Flippy's ${build_boot}, ${build_dtb} & ${build_modules} three files. 
+# 05. Put this three files into ${flippy_folder}
+# 06. Modify ${flippy_version} to kernel version. E.g: flippy_version="5.9.1-flippy-47+"
+# 07. Run: sudo ./make_use_kernel.sh
+# 08. The generated files path: ~/op/router/phicomm_n1/armbian/phicomm-n1/kernel/${build_save_folder}
+# 09. git push to your github
+# 10. Github.com Build openwrt: ~/op/.github/workflows/build-openwrt-phicomm_n1.yml
 #
 # Tips: If run 'sudo ./make_use_kernel.sh' is 'Command not found'. Run: sudo chmod +x make_use_kernel.sh
 #

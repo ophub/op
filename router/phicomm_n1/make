@@ -280,23 +280,24 @@ set_rootsize() {
 usage() {
     cat <<EOF
 Usage:
-  make [option]
+    make [option]
 
 Options:
-  -c, --clean       clean up the output and temporary directories
+    -c, --clean       clean up the output and temporary directories
 
-  -d, --default     use the default configuration, which means that use the first firmware in the "openwrt" directory, \
-the kernel version is "all", and the rootfs partition size is 1024m
+    -d, --default     the kernel version is "all", and the rootfs partition size is "1024m"
 
-  -k=VERSION        set the kernel version, which must be in the "kernel" directory
-     , -k all       build all the kernel version
-     , -k latest    build the latest kernel version
+    -u, --use=USE     Specify multiple cores, use "_" to connect
 
-  --kernel          show all kernel version in "kernel" directory
+    -k=VERSION        set the kernel version, which must be in the "kernel" directory
+       , -k all       build all the kernel version
+       , -k latest    build the latest kernel version
 
-  -s, --size=SIZE   set the rootfs partition size, do not less than 256m
+    --kernel          show all kernel version in "kernel" directory
 
-  -h, --help        display this help
+    -s, --size=SIZE   set the rootfs partition size, do not less than 256m
+
+    -h, --help        display this help
 
 EOF
 }
@@ -323,6 +324,17 @@ while [ "$1" ]; do
         : ${rootsize:=1024}
         : ${firmware:="${firmwares[0]}"}
         : ${kernel:="all"}
+        ;;
+    -u | --use)
+        use_kernel=$2
+        oldIFS=$IFS
+        IFS=_
+        kernels=($use_kernel)
+        IFS=$oldIFS
+        : ${rootsize:=1024}
+        : ${firmware:="${firmwares[0]}"}
+        : ${kernel:="all"}
+        shift
         ;;
     -k)
         kernel=$2

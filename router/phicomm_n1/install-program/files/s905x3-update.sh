@@ -45,15 +45,15 @@ ROOT_PATH=$(echo $ROOT_PART_MSG | awk '{print $2}')
 ROOT_UUID=$(echo $ROOT_PART_MSG | awk '{print $4}')
 
 case $ROOT_NAME in 
-  mmcblk2p2) NEW_ROOT_NAME=mmcblk2p3
-	     NEW_ROOT_LABEL=EMMC_ROOTFS2
-	     ;;
-  mmcblk2p3) NEW_ROOT_NAME=mmcblk2p2
-	     NEW_ROOT_LABEL=EMMC_ROOTFS1
-	     ;;
-          *) echo "ROOTFS The partition location is incorrect, so the upgrade cannot continue!"
-             exit 1
-             ;;
+     mmcblk2p2) NEW_ROOT_NAME=mmcblk2p3
+	        NEW_ROOT_LABEL=EMMC_ROOTFS2
+	        ;;
+     mmcblk2p3) NEW_ROOT_NAME=mmcblk2p2
+	        NEW_ROOT_LABEL=EMMC_ROOTFS1
+	        ;;
+             *) echo "ROOTFS The partition location is incorrect, so the upgrade cannot continue!"
+                exit 1
+                ;;
 esac
 echo "NEW_ROOT_NAME: [ ${NEW_ROOT_NAME} ]"
 
@@ -189,7 +189,6 @@ for src in $COPY_SRC; do
     (cd ${P2} && tar cf - $src) | tar xf -
     sync
 done
-
 
 if  [ -f /mnt/${NEW_ROOT_NAME}/etc/config/AdGuardHome ]; then
     [ -d /mnt/mmcblk2p4/AdGuardHome/data ] || mkdir -p /mnt/mmcblk2p4/AdGuardHome/data

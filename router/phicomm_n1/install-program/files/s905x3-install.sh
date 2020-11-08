@@ -70,20 +70,20 @@ echo "BOOT: $BOOT_NAME"
 FDTFILE="meson-sm1-x96-max-plus.dtb"
 U_BOOT_EXT=0
 cat <<EOF
---------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
 Please select S905x3 box model:
-1. X96-Max+        [ S905x3: NETWORK: 1000M / TF: 30Mtz / CPU: 2124Mtz ]
-2. HK1-Box         [ S905x3: NETWORK: 1000M / TF: 25Mtz / CPU: 2124Mtz ]
-3. H96-Max-X3      [ S905x3: NETWORK: 1000M / TF: 50Mtz / CPU: 2124Mtz ]
-4. X96-Max-4G      [ S905x2: NETWORK: 1000M / TF: 50Mtz / CPU: 1944Mtz ]
-5. X96-Max-2G      [ S905x2: NETWORK: 100M  / TF: 50Mtz / CPU: 1944Mtz ]
-6. X96-Max+        [ S905x3: NETWORK: 1000M / TF: 30Mtz / CPU: 2244Mtz ]
-7. HK1-Box         [ S905x3: NETWORK: 1000M / TF: 25Mtz / CPU: 2184Mtz ]
-8. H96-Max-X3      [ S905x3: NETWORK: 1000M / TF: 50Mtz / CPU: 2208Mtz ]
-9. Octopus-Planet  [ S905x3: NETWORK: 1000M / TF: 30Mtz / CPU: 2124Mtz ]
+1. X96-Max+        [Standard] [ S905x3: NETWORK: 1000M / TF: 30Mtz / CPU: 2124Mtz ]
+2. HK1-Box         [Standard] [ S905x3: NETWORK: 1000M / TF: 25Mtz / CPU: 2124Mtz ]
+3. H96-Max-X3      [Standard] [ S905x3: NETWORK: 1000M / TF: 50Mtz / CPU: 2124Mtz ]
+4. X96-Max-4G      [Standard] [ S905x2: NETWORK: 1000M / TF: 50Mtz / CPU: 1944Mtz ]
+5. X96-Max-2G      [Standard] [ S905x2: NETWORK: 100M  / TF: 50Mtz / CPU: 1944Mtz ]
+6. X96-Max+        [Beta]     [ S905x3: NETWORK: 1000M / TF: 30Mtz / CPU: 2244Mtz ]
+7. HK1-Box         [Beta]     [ S905x3: NETWORK: 1000M / TF: 25Mtz / CPU: 2184Mtz ]
+8. H96-Max-X3      [Beta]     [ S905x3: NETWORK: 1000M / TF: 50Mtz / CPU: 2208Mtz ]
+9. Octopus-Planet  [Standard] [ S905x3: NETWORK: 1000M / TF: 30Mtz / CPU: 2124Mtz ]
 
 0. Other           [ Enter the dtb file name ]
---------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
 EOF
 echo  "Please choose:"
 read  boxtype
@@ -127,7 +127,10 @@ EOF
 esac
 
 if [  ! -f "/boot/dtb/amlogic/${FDTFILE}" ]; then
-    echo "/boot/dtb/amlogic/${FDTFILE} does not exist！"
+    echo "/boot/dtb/amlogic/${FDTFILE} does not exist!"
+    echo "You can download the .dtb file from [ https://github.com/ophub/op/tree/main/router/phicomm_n1/armbian/dtb-amlogic ]"
+    echo "Copy it to [ /boot/dtb/amlogic/ ]."
+    echo "Then execute this installation command."
     exit 1
 fi
 

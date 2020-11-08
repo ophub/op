@@ -1,6 +1,6 @@
-# Build OpenWrt's Armbian kernel for Phicomm-N1
+# Build OpenWrt's Armbian kernel for Phicomm-N1 & S905x3-Boxs
 
-If you use Phicomm N1 to install OpenWrt, you must know ‘Flippy’. He provides many versions of openwrt firmware for N1 and shares his series of Armbian kernels. If you have heard of ‘Flippy’ for the first time, you can find it through a search engine, E.g: ***` Flippy n1 `***
+If you use Phicomm N1 & S905x3-Boxs to install OpenWrt, you must know ‘Flippy’. He provides many versions of openwrt firmware for Phicomm-N1 & S905x3-Boxs and shares his series of Armbian kernels. If you have heard of ‘Flippy’ for the first time, you can find it through a search engine, E.g: ***` Flippy n1 `***
 
 ## Usage
 
@@ -8,7 +8,7 @@ You can install Flippy’s OpenWrt firmware and use it. If you want to define so
 
 The first method: 
 ```shell script
-Example: ~/op/router/phicomm_n1/build-n1-kernel/
+Example: ~/op/router/phicomm_n1/build-kernel/
  ├── flippy
  │   ├── Armbian_20.10_Aml-s9xxx_buster_5.9.2-flippy-47+.img
  │   ├── OR: N1_Openwrt_R20.10.20_k5.4.73-flippy-47+o.img
@@ -23,7 +23,7 @@ sudo ./make_use_img.sh
 
 The second method: 
 ```shell script
-Example: ~/op/router/phicomm_n1/build-n1-kernel/
+Example: ~/op/router/phicomm_n1/build-kernel/
  ├── flippy
  │   ├── boot-5.4.63-flippy-43+o.tar.gz
  │   ├── dtb-amlogic-5.4.63-flippy-43+o.tar.gz

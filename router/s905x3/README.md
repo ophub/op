@@ -58,7 +58,7 @@ iptables -t nat -I POSTROUTING -o br-lan -j MASQUERADE      #If the interface is
 Put phicomm_n1_firmware file into ${flippy_folder}. Support putting multiple phicomm_n1_firmware_*.img or phicomm_n1_firmware_*.zip files into compiling together.
 
 ```shell script
-example: ~/op/router/s905x3/
+Path: ~/op/router/s905x3/
  ├── flippy
  │   ├── phicomm_n1_firmware_01.img
  │   ├── phicomm_n1_firmware_02.img

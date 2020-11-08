@@ -2,9 +2,9 @@
 
 #========================================================================================================================
 # https://github.com/ophub/op
-# Description: Automatically Build OpenWrt firmware for Phicomm N1
+# Description: Automatically Build OpenWrt firmware for Phicomm-N1 & S905x3-Boxs
 # Function: Use Flippy's OpenWrt firmware for Phicomm N1 to build kernel.tar.xz & modules.tar.xz
-# Copyright (C) 2020 Flippy's OpenWrt firmware for Phicomm N1
+# Copyright (C) 2020 Flippy's Core files for Phicomm-N1 & S905x3-Boxs
 # Copyright (C) 2020 https://github.com/ophub/op
 #========================================================================================================================
 #
@@ -18,8 +18,10 @@
 # 02. git clone https://github.com/ophub/op.git
 # 03. cd ~/op/router/phicomm_n1/build_kernel/
 # 04. Prepare Flippy's ${flippy_file}, support: Armbian_*_Aml-s9xxx_buster*.img, N1_Openwrt*.img, S905x3_Openwrt*.img
+#     Support to put the original Armbian_*_Aml-s9xxx_buster*.img.xz file into the directory and use it directly.
 # 05. Put Flippy's ${flippy_file} file into ${flippy_folder}
 # 06. Modify ${flippy_file} to kernel file name. E.g: flippy_file="Armbian_20.10_Aml-s9xxx_buster_5.8.16-flippy-46+.img"
+#     If the file of ${flippy_file} is not found, Will search for other *.img files in the ${flippy_folder} directory.
 # 07. Run: sudo ./make_use_img.sh
 # 08. The generated files path: ~/op/router/phicomm_n1/armbian/phicomm-n1/kernel/${build_save_folder}
 # 09. git push to your github
@@ -31,7 +33,7 @@
 
 # Modify Flippy's kernel folder & *.img file name
 flippy_folder=${PWD}/"flippy"
-flippy_file="Armbian_20.10_Aml-s9xxx_buster_5.8.16-flippy-46+.img"
+flippy_file="Armbian_20.10_Aml-s9xxx_buster_5.9.2-flippy-47+.img"
 
 # Default setting ( Don't modify )
 build_tmp_folder=${PWD}/"build_tmp"
@@ -79,15 +81,30 @@ echo_color() {
 # Check files
 check_build_files() {
 
-      if  [  ! -f ${flippy_folder}/${flippy_file} ]; then
-        echo_color "red" "(1/7) Error: Files does not exist"  "\n \
-        Please check if the following files exist: \n \
-        ${flippy_folder}/${flippy_file} "
+      if  [ -f ${flippy_folder}/${flippy_file} ]; then
+          echo_color "blue" "(1/7) The specified file exists." "USE: ${flippy_file} ..."
+      elif [ $( ls ${flippy_folder}/*.img -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
+          unset flippy_file
+          flippy_file=$( ls ${flippy_folder}/*.img | head -n 1 )
+          flippy_file=${flippy_file##*/}
+          echo_color "yellow" "(1/7) Unset flippy_file is [ ${flippy_file} ]"  "\n \
+          Try to extract the kernel using this file."
+      elif [ $( ls ${flippy_folder}/*.img.xz -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
+          xz_file=$( ls ${flippy_folder}/*.img.xz | head -n 1 )
+          xz_file=${xz_file##*/}
+          cd ${flippy_folder} && xz -d ${xz_file} && cd ../
+          unset flippy_file
+          flippy_file=$( ls ${flippy_folder}/*.img | head -n 1 )
+          flippy_file=${flippy_file##*/}
+          echo_color "yellow" "(1/7) Unset flippy_file is [ ${flippy_file} ]"  "\n \
+          Try to extract the kernel using this file."
       else
-        # begin run the script
-        echo_color "purple" "Start building" "Use ${flippy_file} build kernel.tar.xz & modules.tar.xz ..."
-        echo_color "green" "(1/7) End check_build_files"  "..."
+          echo_color "red" "(1/7) Error: Please put the compiled files in the [ ${flippy_folder} ] directory." "..."
       fi
+
+      # begin run the script
+      echo_color "purple" "Start building" "..."
+      echo_color "green" "(1/7) End check_build_files"  "..."
 
 }
 
@@ -102,7 +119,7 @@ losetup_mount_img() {
    mount ${lodev}p1 ${boot_tmp}
    [ $? = 0 ] || echo_color "red" "(2/7) mount ${lodev}p1 failed!" "..."
    mount ${lodev}p2 ${root_tmp}
-   [ $? = 0 ] || echo_color "red" "(2/7) mount ${lodev}p2 failed!""..."
+   [ $? = 0 ] || echo_color "red" "(2/7) mount ${lodev}p2 failed!" "..."
 
    echo_color "green" "(2/7) End losetup_mount_img"  "Use: ${lodev} ..."
 
@@ -113,6 +130,50 @@ copy_boot_root() {
 
    cp -rf ${boot_tmp}/{dtb,config*,initrd.img*,System.map*,uInitrd,zImage} ${kernel_tmp}
    cp -rf ${root_tmp}/lib/modules ${modules_tmp}
+   sync
+
+   #Check core files
+   cd ${kernel_tmp}
+   if [ ! -f "config*" -a ! -f "initrd.img*" -a ! -f "System.map*" -a ! -f "uInitrd" -a ! -f "zImage" ]; then
+      echo_color "red" "(3.1/7) The five boot core files is Missing!" "..."
+   fi
+
+   cd ${kernel_tmp}/dtb/amlogic
+   if [ ! -f "meson-gxl-s905d-phicomm-n1.dtb" ]; then
+      cp -f ../../../../../armbian/dtb-amlogic/meson-gxl-s905d-phicomm-n1.dtb .
+      echo_color "yellow" "(3/7) The phicomm-n1 .dtb files is Missing. Has been copied from the dtb library!" "..."
+   fi
+
+   if [ ! -f "meson-sm1-x96-max-plus-100m.dtb" -a ! -f "meson-sm1-x96-max-plus.dtb" ]; then
+      cp -f ../../../../../armbian/dtb-amlogic/meson-sm1-x96-max-plus-100m.dtb .
+      cp -f ../../../../../armbian/dtb-amlogic/meson-sm1-x96-max-plus.dtb .
+      echo_color "yellow" "(3/7) The X96 [1].dtb core files is Missing. Has been copied from the dtb library!" "..."
+   fi
+
+   if [ ! -f "meson-g12a-x96-max.dtb" -a ! -f "meson-g12a-x96-max-rmii.dtb" -a ! -f "meson-sm1-x96-max-plus-oc.dtb" ]; then
+      cp -f ../../../../../armbian/dtb-amlogic/meson-g12a-x96-max.dtb .
+      cp -f ../../../../../armbian/dtb-amlogic/meson-g12a-x96-max-rmii.dtb .
+      cp -f ../../../../../armbian/dtb-amlogic/meson-sm1-x96-max-plus-oc.dtb .
+      echo_color "yellow" "(3/7) Some X96 [4,5,6].dtb files is Missing. Has been copied from the dtb library!" "..."
+   fi
+
+   if [ ! -f "meson-sm1-hk1box-vontar-x3.dtb" -a ! -f "meson-sm1-hk1box-vontar-x3-oc.dtb" ]; then
+      cp -f ../../../../../armbian/dtb-amlogic/meson-sm1-hk1box-vontar-x3.dtb .
+      cp -f ../../../../../armbian/dtb-amlogic/meson-sm1-hk1box-vontar-x3-oc.dtb .
+      echo_color "yellow" "(3/7) Some HX1 [2,7].dtb files is Missing. Has been copied from the dtb library!" "..."
+   fi
+
+   if [ ! -f "meson-sm1-h96-max-x3.dtb" -a ! -f "meson-sm1-h96-max-x3-oc.dtb" ]; then
+      cp -f ../../../../../armbian/dtb-amlogic/meson-sm1-h96-max-x3.dtb .
+      cp -f ../../../../../armbian/dtb-amlogic/meson-sm1-h96-max-x3-oc.dtb .
+      echo_color "yellow" "(3/7) Some H96 [3,8].dtb files is Missing. Has been copied from the dtb library!" "..."
+   fi
+
+   if [ ! -f "meson-gxm-octopus-planet.dtb" ]; then
+      cp -f ../../../../../armbian/dtb-amlogic/meson-gxm-octopus-planet.dtb .
+      echo_color "yellow" "(3/7) The octopus-planet [9].dtb files is Missing. Has been copied from the dtb library!" "..."
+   fi
+
    sync
 
    echo_color "green" "(3/7) End copy_boot_root"  "..."
@@ -153,7 +214,7 @@ build_kernel_modules() {
      if [ $x -eq 0 ]; then
         echo_color "red" "(5/7) Error *.KO Files not found"  "..."
      else
-        echo_color "yellow" "(5/7) Have [ ${x} ] files make ko link"  "..."
+        echo_color "blue" "(5/7) Have [ ${x} ] files make ko link"  "..."
      fi
 
   cd ../../../

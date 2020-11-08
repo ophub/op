@@ -7,7 +7,7 @@
 # Copyright (C) 2020 https://github.com/ophub/op
 #========================================================================================================================
 #
-# example: ~/op/router/s905x3/
+# Path: ~/op/router/s905x3/
 # ├── flippy
 # │   ├── phicomm_n1_firmware_01.img
 # │   ├── phicomm_n1_firmware_02.img
@@ -88,7 +88,7 @@ check_zip_file() {
         for kernel_folder in $( ls -d */ | head -c-2 ); do
             kernel_version=${kernel_folder%/*}
             cd ${kernel_version} && gzip -df *.img.gz && mv -f *.img ../${kernel_version}.img && sync && cd ../
-            echo_color "yellow" "(1/6) Get the kernel: ${kernel_version}" "..."
+            echo_color "blue" "(1/6) Get the kernel: ${kernel_version}" "..."
         done
 
         rm -rf $( find ${PWD}/* -type d ) 2>/dev/null
@@ -152,13 +152,13 @@ edit_uenv() {
             old_x96_dtb="#FDT=\/dtb\/amlogic\/meson-sm1-x96-max-plus-100m.dtb"
             new_x96_dtb="FDT=\/dtb\/amlogic\/meson-sm1-x96-max-plus-100m.dtb"
             sed -i "s/^${old_x96_dtb}/${new_x96_dtb}/g" uEnv.txt
-            echo_color "yellow" "(4/6) x96: Convert completed" "..."
+            echo_color "blue" "(4/6) x96: Convert completed" "..."
             ;;
         hk1)
             old_hk1_dtb="#FDT=\/dtb\/amlogic\/meson-sm1-hk1box-vontar-x3.dtb"
             new_hk1_dtb="FDT=\/dtb\/amlogic\/meson-sm1-hk1box-vontar-x3.dtb"
             sed -i "s/^${old_hk1_dtb}/${new_hk1_dtb}/g" uEnv.txt
-            echo_color "yellow" "(4/6) hk1: Convert completed" "..."
+            echo_color "blue" "(4/6) hk1: Convert completed" "..."
             ;;
         *)
             echo_color "red" "(4/6) Have no this firmware: ${convert_firmware}"  "Please select from this list: [ ${firmware_list[@]} ]"
@@ -170,7 +170,7 @@ edit_uenv() {
             old_n1_dtb="FDT=\/dtb\/amlogic\/meson-gxl-s905d-phicomm-n1.dtb"
             new_n1_dtb="#FDT=\/dtb\/amlogic\/meson-gxl-s905d-phicomm-n1.dtb"
             sed -i "s/^${old_n1_dtb}/${new_n1_dtb}/g" uEnv.txt
-            echo_color "yellow" "(4/6) old-phicomm-n1: dtb have close" "..."
+            echo_color "blue" "(4/6) old-phicomm-n1: dtb have close" "..."
         else
             echo_color "red" "(4/6) Error: Did not match the appropriate type" "..."
         fi
@@ -189,7 +189,7 @@ write_bootloader() {
     if [ -f ${BTLD_BIN} ]; then
        mkdir -p lib/u-boot
        cp ${BTLD_BIN} lib/u-boot/
-       echo_color "yellow" "(5/6) Write bootloader" "[ $(ls lib/u-boot/*.img) ] Can be used for TF card startup."
+       echo_color "blue" "(5/6) Write bootloader" "[ $(ls lib/u-boot/*.img) ] Can be used for TF card startup."
        dd if=${BTLD_BIN} of=${lodev} bs=1 count=442 conv=fsync 2>/dev/null
        dd if=${BTLD_BIN} of=${lodev} bs=512 skip=1 seek=1 conv=fsync 2>/dev/null
     else
@@ -212,7 +212,7 @@ umount_ulosetup() {
      openwrt_filename=openwrt_${firmware_dtb}_${flippy_file%.*}_$(date +"%Y.%m.%d").img
      cp -f ${flippy_folder}/make_${flippy_file} ${build_save_folder}/${openwrt_filename}
      chmod -R 777 ${build_save_folder}
-     echo_color "yellow" "(6/6) Convert to ${build_save_folder}/${openwrt_filename}" "..."
+     echo_color "blue" "(6/6) Convert to ${build_save_folder}/${openwrt_filename}" "..."
      
      sync
 

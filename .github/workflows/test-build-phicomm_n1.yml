@@ -66,7 +66,7 @@ jobs:
       if: steps.download.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
         sudo chmod +x ${{ env.OPENWRT_PATH }}/make
-        sudo ${{ env.OPENWRT_PATH }}/make -u 5.4.60_5.7.10
+        sudo ${{ env.OPENWRT_PATH }}/make -u 5.4.75_5.9.5
         cd ${{ env.OPENWRT_PATH }}/out
         for x in $(ls .); do
           cd $x && gzip *.img && cd ../

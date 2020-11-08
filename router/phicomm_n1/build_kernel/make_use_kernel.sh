@@ -2,9 +2,9 @@
 
 #========================================================================================================================
 # https://github.com/ophub/op
-# Description: Automatically Build OpenWrt firmware for Phicomm N1
+# Description: Automatically Build OpenWrt firmware for Phicomm-N1 & S905x3-Boxs
 # Function: Use Flippy's Armbian kernel files to build kernel.tar.xz & modules.tar.xz
-# Copyright (C) 2020 Flippy's Armbian kernel for Phicomm N1
+# Copyright (C) 2020 Flippy's Core files for Phicomm-N1 & S905x3-Boxs
 # Copyright (C) 2020 https://github.com/ophub/op
 #========================================================================================================================
 #
@@ -22,6 +22,7 @@
 # 04. Prepare Flippy's ${build_boot}, ${build_dtb} & ${build_modules} three files. 
 # 05. Put this three files into ${flippy_folder}
 # 06. Modify ${flippy_version} to kernel version. E.g: flippy_version="5.9.1-flippy-47+"
+#     If the files of ${flippy_version} is not found, Will search for other files in the ${flippy_folder} directory.
 # 07. Run: sudo ./make_use_kernel.sh
 # 08. The generated files path: ~/op/router/phicomm_n1/armbian/phicomm-n1/kernel/${build_save_folder}
 # 09. git push to your github
@@ -34,7 +35,7 @@
 
 # Modify Flippy's kernel folder & version
 flippy_folder=${PWD}/"flippy"
-flippy_version="5.9.1-flippy-47+"
+flippy_version="5.9.5-flippy-48+"
 
 # Default setting ( Don't modify )
 build_tmp_folder=${PWD}/"build_tmp"
@@ -82,18 +83,49 @@ echo_color() {
 # Check files
 check_build_files() {
 
-  if  (test ! -f ${flippy_folder}/${build_boot} || test ! -f ${flippy_folder}/${build_dtb} || test ! -f ${flippy_folder}/${build_modules}); then
-    echo_color "red" "(1/4) Error: Files does not exist"  "\n \
-    Please check if the following three files exist: \n \
-    01. ${flippy_folder}/${build_boot} \n \
-    02. ${flippy_folder}/${build_dtb} \n \
-    03. ${flippy_folder}/${build_modules} "
-  else
+    if   [ -f "${flippy_folder}/${build_boot}" -a -f "${flippy_folder}/${build_dtb}" -a -f "${flippy_folder}/${build_modules}" ]; then
+
+        echo_color "blue" "(1/7) The specified file exists." "USE: ${build_boot} and other files to start compiling ..."
+
+    elif [ $( ls ${flippy_folder}/*.tar.gz -l 2>/dev/null | grep "^-" | wc -l ) -ge 3 ]; then
+
+        unset flippy_version && unset build_save_folder && unset build_boot && unset build_dtb && unset build_modules
+
+        if  [ $( ls ${flippy_folder}/boot-*.tar.gz -l 2>/dev/null | grep "^-" | wc -l ) -ge 1 ]; then
+            build_boot=$( ls ${flippy_folder}/boot-*.tar.gz | head -n 1 ) && build_boot=${build_boot##*/}
+            flippy_version=${build_boot/boot-/} && flippy_version=${flippy_version/.tar.gz/}
+            build_save_folder=${flippy_version%-flippy*}
+        else
+            echo_color "red" "(1/7) Error: Have no boot-*.tar.gz file found in the ${flippy_folder} directory." "..."
+        fi
+
+        if  [ -f ${flippy_folder}/dtb-amlogic-${flippy_version}.tar.gz ]; then
+            build_dtb="dtb-amlogic-${flippy_version}.tar.gz"
+        else
+            echo_color "red" "(1/7) Error: Have no dtb-amlogic-*.tar.gz file found in the ${flippy_folder} directory." "..."
+        fi
+
+        if  [ -f ${flippy_folder}/modules-${flippy_version}.tar.gz ]; then
+            build_modules="modules-${flippy_version}.tar.gz"
+        else
+            echo_color "red" "(1/7) Error: Have no modules-*.tar.gz file found in the ${flippy_folder} directory." "..."
+        fi
+
+        echo_color "yellow" "(1/7) Unset flippy_version, build_save_folder, build_boot, build_dtb and build_modules."  "\n \
+        Try to using this files to building the kernel: \n \
+        flippy_version: ${flippy_version} \n \
+        build_save_folder: ${build_save_folder} \n \
+        build_boot: ${build_boot} \n \
+        build_dtb: ${build_dtb} \n \
+        build_modules: ${build_modules}"
+
+    else
+        echo_color "red" "(1/7) Error: Please put the compiled files in the [ ${flippy_folder} ] directory." "..."
+    fi
+
     # begin run the script
     echo_color "purple" "Start building"  "${build_save_folder}: kernel.tar.xz & modules.tar.xz ..."
     echo_color "green" "(1/4) End check_build_files"  "..."
-  fi
-
 }
 
 # build kernel.tar.xz
@@ -108,8 +140,7 @@ build_kernel() {
      sync
 
   cd ${build_tmp_folder}/kernel
-
-     echo_color "yellow" "Start Unzip ${build_boot}"  "..."
+     echo_color "blue" "Start Unzip ${build_boot}"  "..."
      if [ "${build_boot##*.}"c = "gz"c ]; then
         tar -xzf ${build_boot}
      elif [ "${build_boot##*.}"c = "xz"c ]; then
@@ -125,7 +156,7 @@ build_kernel() {
      [ -f vmlinuz-${flippy_version} ] && cp -f vmlinuz* Temp_kernel/zImage || echo_color "red" "(2/4) vmlinuz* does not exist" "..."
      sync
 
-     echo_color "yellow" "Start Unzip ${build_dtb}"  "..."
+     echo_color "blue" "Start Unzip ${build_dtb}"  "..."
      if [ "${build_dtb##*.}"c = "gz"c ]; then
         tar -xzf ${build_dtb}
      elif [ "${build_dtb##*.}"c = "xz"c ]; then
@@ -134,12 +165,50 @@ build_kernel() {
         echo_color "red" "(2/4) Error build_kernel"  "The suffix of ${build_dtb} must be .tar.gz or .tar.xz ..."
      fi
 
-     echo_color "yellow" "(2/4) Start Copy ${build_dtb} one files"  "..."
-     [ -f meson-gxl-s905d-phicomm-n1.dtb ] && cp -rf *.dtb Temp_kernel/dtb/amlogic/ || echo_color "red" "(2/4) *phicomm-n1.dtb does not exist" "..."
+     echo_color "blue" "(2/4) Start Copy ${build_dtb} one files"  "..."
+     [ -f meson-gxl-s905d-phicomm-n1.dtb ] && cp -rf *.dtb Temp_kernel/dtb/amlogic/ || echo_color "yellow" "(2/4) All *.dtb files does not exist." "..."
      sync
 
-  cd Temp_kernel
-     echo_color "yellow" "(2/4) Start zip kernel.tar.xz"  "..."
+  cd ${build_tmp_folder}/kernel/Temp_kernel/dtb/amlogic/
+     if [ ! -f "meson-gxl-s905d-phicomm-n1.dtb" ]; then
+        cp -f ../../../../../../armbian/dtb-amlogic/meson-gxl-s905d-phicomm-n1.dtb .
+        echo_color "yellow" "(3/7) The phicomm-n1 .dtb files is Missing. Has been copied from the dtb library!" "..."
+     fi
+
+     if [ ! -f "meson-sm1-x96-max-plus-100m.dtb" -a ! -f "meson-sm1-x96-max-plus.dtb" ]; then
+        cp -f ../../../../../../armbian/dtb-amlogic/meson-sm1-x96-max-plus-100m.dtb .
+        cp -f ../../../../../../armbian/dtb-amlogic/meson-sm1-x96-max-plus.dtb .
+        echo_color "yellow" "(3/7) The X96 [1].dtb core files is Missing. Has been copied from the dtb library!" "..."
+     fi
+
+     if [ ! -f "meson-g12a-x96-max.dtb" -a ! -f "meson-g12a-x96-max-rmii.dtb" -a ! -f "meson-sm1-x96-max-plus-oc.dtb" ]; then
+        cp -f ../../../../../../armbian/dtb-amlogic/meson-g12a-x96-max.dtb .
+        cp -f ../../../../../../armbian/dtb-amlogic/meson-g12a-x96-max-rmii.dtb .
+        cp -f ../../../../../../armbian/dtb-amlogic/meson-sm1-x96-max-plus-oc.dtb .
+        echo_color "yellow" "(3/7) Some X96 [4,5,6].dtb files is Missing. Has been copied from the dtb library!" "..."
+     fi
+
+     if [ ! -f "meson-sm1-hk1box-vontar-x3.dtb" -a ! -f "meson-sm1-hk1box-vontar-x3-oc.dtb" ]; then
+        cp -f ../../../../../../armbian/dtb-amlogic/meson-sm1-hk1box-vontar-x3.dtb .
+        cp -f ../../../../../../armbian/dtb-amlogic/meson-sm1-hk1box-vontar-x3-oc.dtb .
+        echo_color "yellow" "(3/7) Some HX1 [2,7].dtb files is Missing. Has been copied from the dtb library!" "..."
+     fi
+
+     if [ ! -f "meson-sm1-h96-max-x3.dtb" -a ! -f "meson-sm1-h96-max-x3-oc.dtb" ]; then
+        cp -f ../../../../../../armbian/dtb-amlogic/meson-sm1-h96-max-x3.dtb .
+        cp -f ../../../../../../armbian/dtb-amlogic/meson-sm1-h96-max-x3-oc.dtb .
+        echo_color "yellow" "(3/7) Some H96 [3,8].dtb files is Missing. Has been copied from the dtb library!" "..."
+     fi
+
+     if [ ! -f "meson-gxm-octopus-planet.dtb" ]; then
+        cp -f ../../../../../../armbian/dtb-amlogic/meson-gxm-octopus-planet.dtb .
+        echo_color "yellow" "(3/7) The octopus-planet [9].dtb files is Missing. Has been copied from the dtb library!" "..."
+     fi
+
+     sync
+
+  cd ${build_tmp_folder}/kernel/Temp_kernel
+     echo_color "blue" "(2/4) Start zip kernel.tar.xz"  "..."
      tar -cf kernel.tar *
      xz -z kernel.tar
      cp -rf kernel.tar.xz ../../../${build_save_folder}/kernel.tar.xz && sync
@@ -159,7 +228,7 @@ build_modules() {
 
   cd ${build_tmp_folder}/modules/lib/modules
 
-     echo_color "yellow" "(3/4) Start Unzip ${build_modules}"  "..."
+     echo_color "blue" "(3/4) Start Unzip ${build_modules}"  "..."
      if [ "${build_modules##*.}"c = "gz"c ]; then
         tar -xzf ${build_modules}
      elif [ "${build_modules##*.}"c = "xz"c ]; then
@@ -176,10 +245,10 @@ build_modules() {
              x=$(($x+1))
          fi
      done
-     echo_color "yellow" "(3/4) Have [ ${x} ] files make ko link"  "..."
+     echo_color "blue" "(3/4) Have [ ${x} ] files make ko link"  "..."
 
   cd ../ && rm -rf ${build_modules} && cd ../../
-     echo_color "yellow" "(3/4) Start zip modules.tar.xz"  "..."
+     echo_color "blue" "(3/4) Start zip modules.tar.xz"  "..."
      tar -cf modules.tar *
      xz -z modules.tar
      cp -rf modules.tar.xz ../../${build_save_folder}/modules.tar.xz && sync

@@ -67,7 +67,7 @@ The software package supports Github Action cloud compilation, and the compiled 
 | diy-part2.sh | After updating and installing feeds, you can write the instructions for modifying the source code into the script, such as modifying the default IP, host name, theme, adding/removing software packages, etc. |
 | make | Phicomm N1 OpenWrt firmware build script. |
 | armbian | Multi-version kernel file directory. |
-| build-n1-kernel | Use the kernel file shared by Flippy to build this script to build the Armbian kernel of OpenWrt for Phicomm-N1. |
+| build_kernel | Use the kernel file shared by Flippy to build this script to build the Armbian kernel of OpenWrt for Phicomm-N1. |
 | install-program | Script to flash firmware to emmc. |
 
 

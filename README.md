@@ -2,7 +2,7 @@
 
 # OpenWrt Firmware
 
-The latest version of the OpenWrt firmware is automatically compiled every Monday, which can be downloaded in [Action](https://github.com/ophub/op/actions). Will be updated to latest in every Monday [Releases](https://github.com/ophub/op/releases). For detailed information about each firmware, please refer to the README.md file of each model. The currently supported router models are: 
+The latest version of the OpenWrt firmware is automatically compiled every Monday, which can be downloaded in [Action](https://github.com/ophub/op/actions). Will be updated to latest in every Monday [Releases](https://github.com/ophub/op/releases). For detailed information about each firmware, please refer to the README.md file of each model. Some important update instructions can be found in [ChangeLog](https://github.com/ophub/op/blob/main/CHANGELOG.md) documents. The currently supported router models are: 
 
 - [Linksys WRT1900ACS](https://github.com/ophub/op/tree/master/router/linksys_wrt1900acs)
 - [Linksys WRT3200ACM](https://github.com/ophub/op/tree/master/router/linksys_wrt3200acm)
@@ -131,6 +131,9 @@ On the [Action](https://github.com/ophub/op/actions) page. Select ***`Build Open
  │       ├── armbian                                   # armbian related files
  │       │   ├── boot-common.tar.gz                    # Public startup file
  │       │   ├── firmware.tar.gz                       # armbian firmware
+ │       │   ├── dtb-amlogic                           # Armbian*Aml-s9xxx*.img's *.dtb library
+ │       │   │   └── *.dtb                             # *.dtb files
+ │       │   │
  │       │   └── phicomm-n1
  │       │       ├── kernel                            # Custom kernel folder 
  │       │       │   └── ${kernel}                     # Various versions of the kernel folder
@@ -138,15 +141,19 @@ On the [Action](https://github.com/ophub/op/actions) page. Select ***`Build Open
  │       │       │       └── modules.tar.gz
  │       │       └── root                              # Add your custom files(ROOTFS Partition)
  │       │    
- │       ├── build_kernel                              # Build kernel for Phicomm-N1
- │       │   ├── make_use_img.sh                       # Use Flippy's *.img files build
- │       │   ├── make_use_kernel.sh                    # Use Flippy's kernel files build
+ │       ├── build_kernel                              # Build kernel for Phicomm-N1 & S905x3-Boxs
+ │       │   ├── make_use_img.sh                       # Kernel build script use *.img file
+ │       │   ├── make_use_kernel.sh                    # Kernel build script use kernel files
+ │       │   ├── update_dtb.sh                         # Update kernel.tar.xz to latest dtb files
  │       │   ├── README.md
  │       │   └── flippy
- │       │       ├── boot-${flippy_version}.tar.gz
- │       │       ├── dtb-amlogic-${flippy_version}.tar.gz
- │       │       ├── modules-${flippy_version}.tar.gz
- │       │       └── or ${flippy_file} E.g: N1_Openwrt_*.img
+ │       │       ├── Armbian*Aml-s9xxx*.img            # Use Flippy's Armbian*.img files
+ │       │       ├── OR: N1_Openwrt*.img               # Use Flippy's N1_Openwrt.img files
+ │       │       ├── OR: S905x3_Openwrt*.img           # Use Flippy's S905x3_Openwrt*.img files
+ │       │       │
+ │       │       ├── boot-*.tar.gz                     # Use Flippy's boot*,dtb*,modules* files
+ │       │       ├── dtb-amlogic-*.tar.gz
+ │       │       └── modules-*.tar.gz
  │       │     
  │       └── install-program                           # Install openwrt firmware to emmc
  │           ├── Makefile            

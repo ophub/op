@@ -37,7 +37,7 @@ env:
   DIY_P2_SH: router/phicomm_n1/diy-part2.sh
   TMP_PATH: router/phicomm_n1/tmp
   OUT_PATH: router/phicomm_n1/out
-  OPENWRT_ORGANIZE_PATH: router/phicomm_n1/openwrt
+  OPENWRT_PATH: router/phicomm_n1/openwrt
   MAKE_FILE: router/phicomm_n1/make
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
@@ -159,10 +159,10 @@ jobs:
       if: steps.organize.outputs.status == 'success' && env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
         sudo rm -rf $OUT_PATH
-        mkdir -p $OPENWRT_ORGANIZE_PATH
-        cp -rf openwrt/bin/targets/*/*/*.tar.gz $OPENWRT_ORGANIZE_PATH
+        mkdir -p $OPENWRT_PATH
+        cp -rf openwrt/bin/targets/*/*/*.tar.gz $OPENWRT_PATH
         sudo chmod +x $MAKE_FILE
-        sudo $MAKE_FILE -u 5.4.73_5.9.2
+        sudo $MAKE_FILE -u 5.4.75_5.9.5
         cd $OUT_PATH
         for x in $(ls .); do
           cd $x && gzip *.img && cd ../
